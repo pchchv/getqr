@@ -9,7 +9,6 @@ def _check_border(size):
 
 
 class QRCode:
-    def __init__(self, box_size=10,
-                 border=2):
+    def __init__(self, box_size=10, border=2):
         _check_box_size(box_size)
         _check_border(border)
