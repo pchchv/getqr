@@ -1,2 +1,1 @@
-# getqr
-QR Code encoder
+# QR Code encoder
