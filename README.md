@@ -1,0 +1,2 @@
+# getqr
+QR Code encoder
