@@ -1,5 +1,7 @@
 package bitset
 
+import "log"
+
 // Bitset stores an array of bits.
 type Bitset struct {
 	numBits int    // The number of bits stored
@@ -44,6 +46,14 @@ func (b *Bitset) AppendBools(bits ...bool) {
 // Len returns the length of the Bitset in bits.
 func (b *Bitset) Len() int {
 	return b.numBits
+}
+
+// Returns the value of the bit at index.
+func (b *Bitset) At(index int) bool {
+	if index >= b.numBits {
+		log.Panicf("Index %d out of range", index)
+	}
+	return (b.bits[index/8] & (0x80 >> byte(index%8))) != 0
 }
 
 // Append bits copied from other. The new length is b.Len() + other.Len().
