@@ -160,7 +160,6 @@ func (d *dataEncoder) encodedLength(dataMode dataMode, n int) (int, error) {
 	case dataModeByte:
 		length += 8 * n
 	}
-
 	return length, nil
 }
 
@@ -193,5 +192,42 @@ func (d *dataEncoder) charCountBits(dataMode dataMode) int {
 		log.Panic("Unknown data mode")
 	}
 
+	return 0
+}
+
+// encodeAlphanumericChar returns the QR Code encoded value of v.
+//
+// v must be a QR Code defined alphanumeric character: 0-9, A-Z, SP, $%*+-./ or
+// :. The characters are mapped to values in the range 0-44 respectively.
+func encodeAlphanumericCharacter(v byte) uint32 {
+	c := uint32(v)
+	switch {
+	case c >= '0' && c <= '9':
+		// 0-9 encoded as 0-9.
+		return c - '0'
+	case c >= 'A' && c <= 'Z':
+		// A-Z encoded as 10-35.
+		return c - 'A' + 10
+	case c == ' ':
+		return 36
+	case c == '$':
+		return 37
+	case c == '%':
+		return 38
+	case c == '*':
+		return 39
+	case c == '+':
+		return 40
+	case c == '-':
+		return 41
+	case c == '.':
+		return 42
+	case c == '/':
+		return 43
+	case c == ':':
+		return 44
+	default:
+		log.Panicf("encodeAlphanumericCharacter() with non alphanumeric char %v.", v)
+	}
 	return 0
 }
