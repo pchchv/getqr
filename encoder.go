@@ -1,6 +1,7 @@
 package getqr
 
 import (
+	"errors"
 	"log"
 
 	bitset "github.com/pchchv/getqr/bitset"
@@ -122,6 +123,45 @@ func (d *dataEncoder) classifyDataModes() dataMode {
 	}
 	d.actual = append(d.actual, segment{dataMode: mode, data: d.data[start:len(d.data)]})
 	return highestRequiredMode
+}
+
+// Returns the number of bits required to encode n symbols in dataMode. The number of bits required is affected by:
+// - QR code type - Mode Indicator length.
+// - Data mode - the number of bits used to represent data length.
+// - Data mode - the way the data is encoded.
+// - Number of symbols encoded.
+// An error is returned if the mode is not supported, or the length requested is too long.
+func (d *dataEncoder) encodedLength(dataMode dataMode, n int) (int, error) {
+	modeIndicator := d.modeIndicator(dataMode)
+	charCountBits := d.charCountBits(dataMode)
+
+	if modeIndicator == nil {
+		return 0, errors.New("mode not supported")
+	}
+
+	maxLength := (1 << uint8(charCountBits)) - 1
+
+	if n > maxLength {
+		return 0, errors.New("length too long to be represented")
+	}
+
+	length := modeIndicator.Len() + charCountBits
+
+	switch dataMode {
+	case dataModeNumeric:
+		length += 10 * (n / 3)
+
+		if n%3 != 0 {
+			length += 1 + 3*(n%3)
+		}
+	case dataModeAlphanumeric:
+		length += 11 * (n / 2)
+		length += 6 * (n % 2)
+	case dataModeByte:
+		length += 8 * n
+	}
+
+	return length, nil
 }
 
 // Returns the segment header bits for a segment of type dataMode
