@@ -1,6 +1,10 @@
 package getqr
 
-import "image/color"
+import (
+	"image/color"
+
+	bitset "github.com/pchchv/getqr/bitset"
+)
 
 type QRCode struct {
 	Content         string      // Original content encoded
@@ -8,7 +12,7 @@ type QRCode struct {
 	ForegroundColor color.Color
 	Border          bool // QR Code border. True — borders are enabled
 	encoder         *dataEncoder
-	data            *bitset
+	data            *bitset.Bitset
 	synbol          *symbol
 	mask            int
 }
