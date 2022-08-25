@@ -45,3 +45,14 @@ func (b *Bitset) AppendBools(bits ...bool) {
 func (b *Bitset) Len() int {
 	return b.numBits
 }
+
+// Append bits copied from other. The new length is b.Len() + other.Len().
+func (b *Bitset) Append(other *Bitset) {
+	b.ensureCapacity(other.numBits)
+	for i := 0; i < other.numBits; i++ {
+		if other.At(i) {
+			b.bits[b.numBits/8] |= 0x80 >> uint(b.numBits%8)
+		}
+		b.numBits++
+	}
+}
