@@ -10,6 +10,14 @@ const (
 	dataEncoderType1To9 dataEncoderType = iota
 	dataEncoderType10To26
 	dataEncoderType27To40
+	// Each dataMode is a subset of the subsequent dataMode:
+	// dataModeNone < dataModeNumeric < dataModeAlphanumeric < dataModeByte
+	// This ordering is important for determining which data modes a character can be encoded with.
+	// E.g. 'E' can be encoded in both dataModeAlphanumeric and dataModeByte.
+	dataModeNone dataMode = 1 << iota
+	dataModeNumeric
+	dataModeAlphanumeric
+	dataModeByte
 )
 
 // A dataEncoder encodes data for a particular QR Code version
@@ -78,4 +86,40 @@ func newDataEncoder(t dataEncoderType) *dataEncoder {
 		log.Panic("Unknown dataEncoderType")
 	}
 	return d
+}
+
+// Classifies the raw data into unoptimised segments.
+// e.g. "123ZZ#!#!" => [numeric, 3, "123"] [alphanumeric, 2, "ZZ"] [byte, 4, "#!#!"].
+// Returns the highest data mode needed to encode the data.
+// e.g. for a mixed numeric/alphanumeric input, the highest is alphanumeric.
+// dataModeNone < dataModeNumeric < dataModeAlphanumeric < dataModeByte
+func (d *dataEncoder) classifyDataModes() dataMode {
+	var start int
+	mode := dataModeNone
+	highestRequiredMode := mode
+	for i, v := range d.data {
+		newMode := dataModeNone
+		switch {
+		case v >= 0x30 && v <= 0x39:
+			newMode = dataModeNumeric
+		case v == 0x20 || v == 0x24 || v == 0x25 || v == 0x2a || v == 0x2b || v ==
+			0x2d || v == 0x2e || v == 0x2f || v == 0x3a || (v >= 0x41 && v <= 0x5a):
+			newMode = dataModeAlphanumeric
+		default:
+			newMode = dataModeByte
+		}
+		if newMode != mode {
+			if i > 0 {
+				d.actual = append(d.actual, segment{dataMode: mode, data: d.data[start:i]})
+
+				start = i
+			}
+			mode = newMode
+		}
+		if newMode > highestRequiredMode {
+			highestRequiredMode = newMode
+		}
+	}
+	d.actual = append(d.actual, segment{dataMode: mode, data: d.data[start:len(d.data)]})
+	return highestRequiredMode
 }
