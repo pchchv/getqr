@@ -40,3 +40,8 @@ func (b *Bitset) AppendBools(bits ...bool) {
 		b.numBits++
 	}
 }
+
+// Len returns the length of the Bitset in bits.
+func (b *Bitset) Len() int {
+	return b.numBits
+}
