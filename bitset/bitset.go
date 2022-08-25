@@ -67,11 +67,25 @@ func (b *Bitset) Append(other *Bitset) {
 	}
 }
 
-// AppendUint32 appends the numBits least significant bits from value.
+// Append the numBits least significant bits from value.
 func (b *Bitset) AppendUint32(value uint32, numBits int) {
 	b.ensureCapacity(numBits)
 	if numBits > 32 {
 		log.Panicf("numBits %d out of range 0-32", numBits)
+	}
+	for i := numBits - 1; i >= 0; i-- {
+		if value&(1<<uint(i)) != 0 {
+			b.bits[b.numBits/8] |= 0x80 >> uint(b.numBits%8)
+		}
+		b.numBits++
+	}
+}
+
+// Append the numBits least significant bits from value.
+func (b *Bitset) AppendByte(value byte, numBits int) {
+	b.ensureCapacity(numBits)
+	if numBits > 8 {
+		log.Panicf("numBits %d out of range 0-8", numBits)
 	}
 	for i := numBits - 1; i >= 0; i-- {
 		if value&(1<<uint(i)) != 0 {
