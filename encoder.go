@@ -163,7 +163,51 @@ func (d *dataEncoder) encodedLength(dataMode dataMode, n int) (int, error) {
 	return length, nil
 }
 
-// encodeDataRaw encodes data in dataMode. The encoded data is appended to encoded.
+// Optimizes the list of segments to reduce the total length of the output encoded data. The algorithm merges adjacent segments.
+// Segments are merged only if the data modes are compatible and if the merged segment has a shorter encoded length than the individual segments.
+// Multiple segments may be merged. For example, a string of alternating alternating alphanumeric/numeric segments ANANANA may be optimized to just A.
+func (d *dataEncoder) optimiseDataModes() error {
+	for i := 0; i < len(d.actual); {
+		mode := d.actual[i].dataMode
+		numChars := len(d.actual[i].data)
+		j := i + 1
+		for j < len(d.actual) {
+			nextNumChars := len(d.actual[j].data)
+			nextMode := d.actual[j].dataMode
+			if nextMode > mode {
+				break
+			}
+			coalescedLength, err := d.encodedLength(mode, numChars+nextNumChars)
+			if err != nil {
+				return err
+			}
+			seperateLength1, err := d.encodedLength(mode, numChars)
+			if err != nil {
+				return err
+			}
+			seperateLength2, err := d.encodedLength(nextMode, nextNumChars)
+			if err != nil {
+				return err
+			}
+			if coalescedLength < seperateLength1+seperateLength2 {
+				j++
+				numChars += nextNumChars
+			} else {
+				break
+			}
+		}
+		optimised := segment{dataMode: mode,
+			data: make([]byte, 0, numChars)}
+		for k := i; k < j; k++ {
+			optimised.data = append(optimised.data, d.actual[k].data...)
+		}
+		d.optimised = append(d.optimised, optimised)
+		i = j
+	}
+	return nil
+}
+
+// Encodes data in dataMode. The encoded data is appended to encoded.
 func (d *dataEncoder) encodeDataRaw(data []byte, dataMode dataMode, encoded *bitset.Bitset) {
 	modeIndicator := d.modeIndicator(dataMode)
 	charCountBits := d.charCountBits(dataMode)
@@ -224,7 +268,7 @@ func (d *dataEncoder) modeIndicator(dataMode dataMode) *bitset.Bitset {
 	return nil
 }
 
-// charCountBits returns the number of bits used to encode the length of a data
+// Returns the number of bits used to encode the length of a data
 // segment of type dataMode.
 func (d *dataEncoder) charCountBits(dataMode dataMode) int {
 	switch dataMode {
