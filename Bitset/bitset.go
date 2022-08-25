@@ -8,6 +8,7 @@ type Bitset struct {
 
 func New(v ...bool) *Bitset {
 	b := &Bitset{numBits: 0, bits: make([]byte, 0)}
+	b.AppendBools(v...)
 	return b
 }
 
@@ -26,4 +27,16 @@ func (b *Bitset) ensureCapacity(numBits int) {
 	}
 
 	b.bits = append(b.bits, make([]byte, newNumBytes+2*len(b.bits))...)
+}
+
+// AppendBools appends bits to the Bitset.
+func (b *Bitset) AppendBools(bits ...bool) {
+	b.ensureCapacity(len(bits))
+
+	for _, v := range bits {
+		if v {
+			b.bits[b.numBits/8] |= 0x80 >> uint(b.numBits%8)
+		}
+		b.numBits++
+	}
 }
