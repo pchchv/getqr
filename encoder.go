@@ -163,6 +163,52 @@ func (d *dataEncoder) encodedLength(dataMode dataMode, n int) (int, error) {
 	return length, nil
 }
 
+// encodeDataRaw encodes data in dataMode. The encoded data is appended to encoded.
+func (d *dataEncoder) encodeDataRaw(data []byte, dataMode dataMode, encoded *bitset.Bitset) {
+	modeIndicator := d.modeIndicator(dataMode)
+	charCountBits := d.charCountBits(dataMode)
+	// Append mode indicator.
+	encoded.Append(modeIndicator)
+	// Append character count.
+	encoded.AppendUint32(uint32(len(data)), charCountBits)
+	// Append data.
+	switch dataMode {
+	case dataModeNumeric:
+		for i := 0; i < len(data); i += 3 {
+			charsRemaining := len(data) - i
+
+			var value uint32
+			bitsUsed := 1
+
+			for j := 0; j < charsRemaining && j < 3; j++ {
+				value *= 10
+				value += uint32(data[i+j] - 0x30)
+				bitsUsed += 3
+			}
+			encoded.AppendUint32(value, bitsUsed)
+		}
+	case dataModeAlphanumeric:
+		for i := 0; i < len(data); i += 2 {
+			charsRemaining := len(data) - i
+
+			var value uint32
+			for j := 0; j < charsRemaining && j < 2; j++ {
+				value *= 45
+				value += encodeAlphanumericCharacter(data[i+j])
+			}
+			bitsUsed := 6
+			if charsRemaining > 1 {
+				bitsUsed = 11
+			}
+			encoded.AppendUint32(value, bitsUsed)
+		}
+	case dataModeByte:
+		for _, b := range data {
+			encoded.AppendByte(b, 8)
+		}
+	}
+}
+
 // Returns the segment header bits for a segment of type dataMode
 func (d *dataEncoder) modeIndicator(dataMode dataMode) *bitset.Bitset {
 	switch dataMode {
@@ -195,10 +241,8 @@ func (d *dataEncoder) charCountBits(dataMode dataMode) int {
 	return 0
 }
 
-// encodeAlphanumericChar returns the QR Code encoded value of v.
-//
-// v must be a QR Code defined alphanumeric character: 0-9, A-Z, SP, $%*+-./ or
-// :. The characters are mapped to values in the range 0-44 respectively.
+// Returns the QR Code encoded value of v, v must be a QR Code defined alphanumeric character:
+// 0-9, A-Z, SP, $%*+-./ or :. The characters are mapped to values in the range 0-44 respectively.
 func encodeAlphanumericCharacter(v byte) uint32 {
 	c := uint32(v)
 	switch {
