@@ -123,3 +123,18 @@ func (d *dataEncoder) classifyDataModes() dataMode {
 	d.actual = append(d.actual, segment{dataMode: mode, data: d.data[start:len(d.data)]})
 	return highestRequiredMode
 }
+
+// Returns the segment header bits for a segment of type dataMode
+func (d *dataEncoder) modeIndicator(dataMode dataMode) *bitset.Bitset {
+	switch dataMode {
+	case dataModeNumeric:
+		return d.numericModeIndicator
+	case dataModeAlphanumeric:
+		return d.alphanumericModeIndicator
+	case dataModeByte:
+		return d.byteModeIndicator
+	default:
+		log.Panic("Unknown data mode")
+	}
+	return nil
+}
