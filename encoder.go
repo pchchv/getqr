@@ -22,17 +22,17 @@ const (
 
 // A dataEncoder encodes data for a particular QR Code version
 type dataEncoder struct {
-	minVersion                int            //Minimum version supported
-	maxVersion                int            // Maximum version supported.
-	numericModeIndicator      *bitset.Bitset // Mode indicator bit sequences.
-	alphanumericModeIndicator *bitset.Bitset
-	byteModeIndicator         *bitset.Bitset
-	numericCharCountBits      int // Character count lengths
-	alphanumericCharCountBits int
-	byteCharCountBits         int
-	data                      []byte    // The raw input data.
-	actual                    []segment // The data classified into unoptimised segmentss
-	optimised                 []segment // The data classified into optimised segments.
+	minVersion                   int            //Minimum version supported
+	maxVersion                   int            // Maximum version supported.
+	numericModeIndicator         *bitset.Bitset // Mode indicator bit sequences.
+	alphanumericModeIndicator    *bitset.Bitset
+	byteModeIndicator            *bitset.Bitset
+	numNumericCharCountBits      int // Character count lengths
+	numAlphanumericCharCountBits int
+	numByteCharCountBits         int
+	data                         []byte    // The raw input data.
+	actual                       []segment // The data classified into unoptimised segmentss
+	optimised                    []segment // The data classified into optimised segments.
 }
 
 type dataEncoderType uint8
@@ -51,36 +51,36 @@ func newDataEncoder(t dataEncoderType) *dataEncoder {
 	switch t {
 	case dataEncoderType1To9:
 		d = &dataEncoder{
-			minVersion:                1,
-			maxVersion:                9,
-			numericModeIndicator:      bitset.New(false, false, false, true),
-			alphanumericModeIndicator: bitset.New(false, false, true, false),
-			byteModeIndicator:         bitset.New(false, true, false, false),
-			numericCharCountBits:      10,
-			alphanumericCharCountBits: 9,
-			byteCharCountBits:         8,
+			minVersion:                   1,
+			maxVersion:                   9,
+			numericModeIndicator:         bitset.New(false, false, false, true),
+			alphanumericModeIndicator:    bitset.New(false, false, true, false),
+			byteModeIndicator:            bitset.New(false, true, false, false),
+			numNumericCharCountBits:      10,
+			numAlphanumericCharCountBits: 9,
+			numByteCharCountBits:         8,
 		}
 	case dataEncoderType10To26:
 		d = &dataEncoder{
-			minVersion:                10,
-			maxVersion:                26,
-			numericModeIndicator:      bitset.New(false, false, false, true),
-			alphanumericModeIndicator: bitset.New(false, false, true, false),
-			byteModeIndicator:         bitset.New(false, true, false, false),
-			numericCharCountBits:      12,
-			alphanumericCharCountBits: 11,
-			byteCharCountBits:         16,
+			minVersion:                   10,
+			maxVersion:                   26,
+			numericModeIndicator:         bitset.New(false, false, false, true),
+			alphanumericModeIndicator:    bitset.New(false, false, true, false),
+			byteModeIndicator:            bitset.New(false, true, false, false),
+			numNumericCharCountBits:      12,
+			numAlphanumericCharCountBits: 11,
+			numByteCharCountBits:         16,
 		}
 	case dataEncoderType27To40:
 		d = &dataEncoder{
-			minVersion:                27,
-			maxVersion:                40,
-			numericModeIndicator:      bitset.New(false, false, false, true),
-			alphanumericModeIndicator: bitset.New(false, false, true, false),
-			byteModeIndicator:         bitset.New(false, true, false, false),
-			numericCharCountBits:      14,
-			alphanumericCharCountBits: 13,
-			byteCharCountBits:         16,
+			minVersion:                   27,
+			maxVersion:                   40,
+			numericModeIndicator:         bitset.New(false, false, false, true),
+			alphanumericModeIndicator:    bitset.New(false, false, true, false),
+			byteModeIndicator:            bitset.New(false, true, false, false),
+			numNumericCharCountBits:      14,
+			numAlphanumericCharCountBits: 13,
+			numByteCharCountBits:         16,
 		}
 	default:
 		log.Panic("Unknown dataEncoderType")
@@ -137,4 +137,21 @@ func (d *dataEncoder) modeIndicator(dataMode dataMode) *bitset.Bitset {
 		log.Panic("Unknown data mode")
 	}
 	return nil
+}
+
+// charCountBits returns the number of bits used to encode the length of a data
+// segment of type dataMode.
+func (d *dataEncoder) charCountBits(dataMode dataMode) int {
+	switch dataMode {
+	case dataModeNumeric:
+		return d.numNumericCharCountBits
+	case dataModeAlphanumeric:
+		return d.numAlphanumericCharCountBits
+	case dataModeByte:
+		return d.numByteCharCountBits
+	default:
+		log.Panic("Unknown data mode")
+	}
+
+	return 0
 }
