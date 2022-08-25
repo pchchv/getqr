@@ -89,6 +89,46 @@ func newDataEncoder(t dataEncoderType) *dataEncoder {
 	return d
 }
 
+// Encode data as one or more segments and return the encoded data.
+// The returned data does not include the terminator bit sequence.
+func (d *dataEncoder) encode(data []byte) (*bitset.Bitset, error) {
+	d.data = data
+	d.actual = nil
+	d.optimised = nil
+	if len(data) == 0 {
+		return nil, errors.New("no data to encode")
+	}
+	// Classify data into unoptimised segments.
+	highestRequiredMode := d.classifyDataModes()
+	// Optimise segments.
+	err := d.optimiseDataModes()
+	if err != nil {
+		return nil, err
+	}
+	// Check if a single byte encoded segment would be more efficient.
+	optimizedLength := 0
+	for _, s := range d.optimised {
+		length, err := d.encodedLength(s.dataMode, len(s.data))
+		if err != nil {
+			return nil, err
+		}
+		optimizedLength += length
+	}
+	singleByteSegmentLength, err := d.encodedLength(highestRequiredMode, len(d.data))
+	if err != nil {
+		return nil, err
+	}
+	if singleByteSegmentLength <= optimizedLength {
+		d.optimised = []segment{segment{dataMode: highestRequiredMode, data: d.data}}
+	}
+	// Encode data.
+	encoded := bitset.New()
+	for _, s := range d.optimised {
+		d.encodeDataRaw(s.data, s.dataMode, encoded)
+	}
+	return encoded, nil
+}
+
 // Classifies the raw data into unoptimised segments.
 // e.g. "123ZZ#!#!" => [numeric, 3, "123"] [alphanumeric, 2, "ZZ"] [byte, 4, "#!#!"].
 // Returns the highest data mode needed to encode the data.
