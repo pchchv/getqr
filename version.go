@@ -2802,3 +2802,11 @@ func (v qrCodeVersion) numTerminatorBitsRequired(numDataBits int) int {
 	}
 	return numTerminatorBits
 }
+
+// Returns the number of bits required to pad data of length numDataBits upto the nearest codeword size.
+func (v qrCodeVersion) numBitsToPadToCodeword(numDataBits int) int {
+	if numDataBits == v.numDataBits() {
+		return 0
+	}
+	return (8 - numDataBits%8) % 8
+}
