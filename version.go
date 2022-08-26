@@ -2747,3 +2747,12 @@ type block struct {
 	numCodewords     int // Total codewords (numErrorCodewords+numDataCodewords)
 	numDataCodewords int // Number of data codewords
 }
+
+// Returns the data capacity in bits
+func (v qrCodeVersion) numDataBits() int {
+	numDataBits := 0
+	for _, b := range v.block {
+		numDataBits += 8 * b.numBlocks * b.numDataCodewords // 8 bits in a byte
+	}
+	return numDataBits
+}
