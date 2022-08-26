@@ -94,3 +94,10 @@ func (b *Bitset) AppendByte(value byte, numBits int) {
 		b.numBits++
 	}
 }
+
+// Appends num bits of value value.
+func (b *Bitset) AppendNumBools(num int, value bool) {
+	for i := 0; i < num; i++ {
+		b.AppendBools(value)
+	}
+}
