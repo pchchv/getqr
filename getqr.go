@@ -98,3 +98,9 @@ func NewWithForcedVersion(content string, version int, level RecoveryLevel) (*QR
 	}
 	return q, nil
 }
+
+// Adds final terminator bits to the encoded data. The number of terminator bits required is determined when the QR Code version is chosen
+// The terminator bits are thus added after the QR Code version is chosen, rather than at the data encoding stage.
+func (q *QRCode) addTerminatorBits(numTerminatorBits int) {
+	q.data.AppendNumBools(numTerminatorBits, false)
+}
