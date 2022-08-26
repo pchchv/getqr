@@ -26,3 +26,8 @@ func newGFPolyFromData(data *bitset.Bitset) gfPoly {
 	}
 	return result
 }
+
+// Returns the number of
+func (e gfPoly) numTerms() int {
+	return len(e.term)
+}
