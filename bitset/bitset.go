@@ -101,3 +101,18 @@ func (b *Bitset) AppendNumBools(num int, value bool) {
 		b.AppendBools(value)
 	}
 }
+
+// Returns a byte consisting of upto 8 bits starting at index.
+func (b *Bitset) ByteAt(index int) byte {
+	if index < 0 || index >= b.numBits {
+		log.Panicf("Index %d out of range", index)
+	}
+	var result byte
+	for i := index; i < index+8 && i < b.numBits; i++ {
+		result <<= 1
+		if b.At(i) {
+			result |= 1
+		}
+	}
+	return result
+}
