@@ -54,6 +54,23 @@ func gfPolyAdd(a, b gfPoly) gfPoly {
 	return result.normalised()
 }
 
+// Returns a * b.
+func gfPolyMultiply(a, b gfPoly) gfPoly {
+	numATerms := a.numTerms()
+	numBTerms := b.numTerms()
+	result := gfPoly{term: make([]gfElement, numATerms+numBTerms)}
+	for i := 0; i < numATerms; i++ {
+		for j := 0; j < numBTerms; j++ {
+			if a.term[i] != 0 && b.term[j] != 0 {
+				monomial := gfPoly{term: make([]gfElement, i+j+1)}
+				monomial.term[i+j] = gfMultiply(a.term[i], b.term[j])
+				result = gfPolyAdd(result, monomial)
+			}
+		}
+	}
+	return result.normalised()
+}
+
 func (e gfPoly) normalised() gfPoly {
 	numTerms := e.numTerms()
 	maxNonzeroTerm := numTerms - 1
