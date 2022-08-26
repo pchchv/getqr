@@ -71,3 +71,8 @@ func gfMultiply(a, b gfElement) gfElement {
 	}
 	return gfExpTable[(gfLogTable[a]+gfLogTable[b])%255]
 }
+
+// Returns a + b.
+func gfAdd(a, b gfElement) gfElement {
+	return a ^ b
+}
