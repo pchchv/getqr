@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"image/color"
+	"log"
 
 	bitset "github.com/pchchv/getqr/bitset"
 )
@@ -103,4 +104,28 @@ func NewWithForcedVersion(content string, version int, level RecoveryLevel) (*QR
 // The terminator bits are thus added after the QR Code version is chosen, rather than at the data encoding stage.
 func (q *QRCode) addTerminatorBits(numTerminatorBits int) {
 	q.data.AppendNumBools(numTerminatorBits, false)
+}
+
+// Pads the encoded data upto the full length required.
+func (q *QRCode) addPadding() {
+	numDataBits := q.version.numDataBits()
+	if q.data.Len() == numDataBits {
+		return
+	}
+	// Pad to the nearest codeword boundary.
+	q.data.AppendNumBools(q.version.numBitsToPadToCodeword(q.data.Len()), false)
+	// Pad codewords 0b11101100 and 0b00010001.
+	padding := [2]*bitset.Bitset{
+		bitset.New(true, true, true, false, true, true, false, false),
+		bitset.New(false, false, false, true, false, false, false, true),
+	}
+	// Insert pad codewords alternately.
+	i := 0
+	for numDataBits-q.data.Len() >= 8 {
+		q.data.Append(padding[i])
+		i = 1 - i // Alternate between 0 and 1.
+	}
+	if q.data.Len() != numDataBits {
+		log.Panicf("BUG: got len %d, expected %d", q.data.Len(), numDataBits)
+	}
 }
