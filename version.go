@@ -2790,3 +2790,15 @@ func getQRCodeVersion(level RecoveryLevel, version int) *qrCodeVersion {
 
 	return nil
 }
+
+func (v qrCodeVersion) numTerminatorBitsRequired(numDataBits int) int {
+	numFreeBits := v.numDataBits() - numDataBits
+	var numTerminatorBits int
+	switch {
+	case numFreeBits >= 4:
+		numTerminatorBits = 4
+	default:
+		numTerminatorBits = numFreeBits
+	}
+	return numTerminatorBits
+}
