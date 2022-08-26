@@ -2757,9 +2757,9 @@ func (v qrCodeVersion) numDataBits() int {
 	return numDataBits
 }
 
-// Chooses the most suitable QR Code version for a stated data length in bits, the error recovery level required, and the data encoder used.
-// The chosen QR Code version is the smallest version able to fit numDataBits and the optional terminator bits required by the specified encoder.
-// The chosen QR Code version is returned.
+// Chooses the most suitable QR Code version for a stated data length in bits, the error recovery level required, and the data encoder used
+// The chosen QR Code version is the smallest version able to fit numDataBits and the optional terminator bits required by the specified encoder
+// The chosen QR Code version is returned
 func chooseQRCodeVersion(level RecoveryLevel, encoder *dataEncoder, numDataBits int) *qrCodeVersion {
 	var chosenVersion *qrCodeVersion
 	for _, v := range versions {
@@ -2777,4 +2777,16 @@ func chooseQRCodeVersion(level RecoveryLevel, encoder *dataEncoder, numDataBits 
 		}
 	}
 	return chosenVersion
+}
+
+// Returns the QR code version by version number and recovery level
+// Returns nil if the requested combination is not defined
+func getQRCodeVersion(level RecoveryLevel, version int) *qrCodeVersion {
+	for _, v := range versions {
+		if v.level == level && v.version == version {
+			return &v
+		}
+	}
+
+	return nil
 }
