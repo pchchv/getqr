@@ -2810,3 +2810,12 @@ func (v qrCodeVersion) numBitsToPadToCodeword(numDataBits int) int {
 	}
 	return (8 - numDataBits%8) % 8
 }
+
+// Returns the number of blocks
+func (v qrCodeVersion) numBlocks() int {
+	numBlocks := 0
+	for _, b := range v.block {
+		numBlocks += b.numBlocks
+	}
+	return numBlocks
+}
