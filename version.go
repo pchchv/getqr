@@ -2798,6 +2798,12 @@ func (v qrCodeVersion) numBlocks() int {
 	return numBlocks
 }
 
+// Returns the number of pixels of border space on each side of the QR Code
+// The quiet space assists with decoding.
+func (v qrCodeVersion) quietZoneSize() int {
+	return 4
+}
+
 // Chooses the most suitable QR Code version for a stated data length in bits, the error recovery level required, and the data encoder used
 // The chosen QR Code version is the smallest version able to fit numDataBits and the optional terminator bits required by the specified encoder
 // The chosen QR Code version is returned
