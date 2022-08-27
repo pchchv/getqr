@@ -7,6 +7,7 @@ import (
 	"log"
 
 	bitset "github.com/pchchv/getqr/bitset"
+	reedsolomon "github.com/pchchv/getqr/reedsolomon"
 )
 
 type QRCode struct {
@@ -128,4 +129,60 @@ func (q *QRCode) addPadding() {
 	if q.data.Len() != numDataBits {
 		log.Panicf("BUG: got len %d, expected %d", q.data.Len(), numDataBits)
 	}
+}
+
+// Takes the completed (terminated & padded) encoded data, splits the data into blocks (as specified by the QR Code version),
+// applies error correction to each block, then interleaves the blocks together
+// The QR Code's final data sequence is returned.
+func (q *QRCode) encodeBlocks() *bitset.Bitset {
+	// Split into blocks.
+	type dataBlock struct {
+		data          *bitset.Bitset
+		ecStartOffset int
+	}
+	block := make([]dataBlock, q.version.numBlocks())
+	start := 0
+	end := 0
+	blockID := 0
+	for _, b := range q.version.block {
+		for j := 0; j < b.numBlocks; j++ {
+			start = end
+			end = start + b.numDataCodewords*8
+			// Apply error correction to each block.
+			numErrorCodewords := b.numCodewords - b.numDataCodewords
+			block[blockID].data = reedsolomon.Encode(q.data.Substr(start, end), numErrorCodewords)
+			block[blockID].ecStartOffset = end - start
+			blockID++
+		}
+	}
+	// Interleave the blocks.
+	result := bitset.New()
+	// Combine data blocks.
+	working := true
+	for i := 0; working; i += 8 {
+		working = false
+		for j, b := range block {
+			if i >= block[j].ecStartOffset {
+				continue
+			}
+			result.Append(b.data.Substr(i, i+8))
+			working = true
+		}
+	}
+	// Combine error correction blocks.
+	working = true
+	for i := 0; working; i += 8 {
+		working = false
+		for j, b := range block {
+			offset := i + block[j].ecStartOffset
+			if offset >= block[j].data.Len() {
+				continue
+			}
+			result.Append(b.data.Substr(offset, offset+8))
+			working = true
+		}
+	}
+	// Append remainder bits.
+	result.AppendNumBools(q.version.numRemainderBits, false)
+	return result
 }
