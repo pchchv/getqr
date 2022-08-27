@@ -124,6 +124,22 @@ func (b *Bitset) AppendBytes(data []byte) {
 	}
 }
 
+// Returns a substring, consisting of the bits from indexes start to end.
+func (b *Bitset) Substr(start int, end int) *Bitset {
+	if start > end || end > b.numBits {
+		log.Panicf("Out of range start=%d end=%d numBits=%d", start, end, b.numBits)
+	}
+	result := New()
+	result.ensureCapacity(end - start)
+	for i := start; i < end; i++ {
+		if b.At(i) {
+			result.bits[result.numBits/8] |= 0x80 >> uint(result.numBits%8)
+		}
+		result.numBits++
+	}
+	return result
+}
+
 // Returns a copy
 func Clone(from *Bitset) *Bitset {
 	return &Bitset{numBits: from.numBits, bits: from.bits[:]}
