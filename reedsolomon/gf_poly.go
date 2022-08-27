@@ -36,6 +36,59 @@ func (e gfPoly) numTerms() int {
 	return len(e.term)
 }
 
+func (e gfPoly) normalised() gfPoly {
+	numTerms := e.numTerms()
+	maxNonzeroTerm := numTerms - 1
+	for i := numTerms - 1; i >= 0; i-- {
+		if e.term[i] != 0 {
+			break
+		}
+		maxNonzeroTerm = i - 1
+	}
+	if maxNonzeroTerm < 0 {
+		return gfPoly{}
+	} else if maxNonzeroTerm < numTerms-1 {
+		e.term = e.term[0 : maxNonzeroTerm+1]
+	}
+	return e
+}
+
+// equals returns true if e == other
+func (e gfPoly) equals(other gfPoly) bool {
+	var minecPoly *gfPoly
+	var maxecPoly *gfPoly
+	if e.numTerms() > other.numTerms() {
+		minecPoly = &other
+		maxecPoly = &e
+	} else {
+		minecPoly = &e
+		maxecPoly = &other
+	}
+	numMinTerms := minecPoly.numTerms()
+	numMaxTerms := maxecPoly.numTerms()
+	for i := 0; i < numMinTerms; i++ {
+		if e.term[i] != other.term[i] {
+			return false
+		}
+	}
+	for i := numMinTerms; i < numMaxTerms; i++ {
+		if maxecPoly.term[i] != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func (e gfPoly) data(numTerms int) []byte {
+	result := make([]byte, numTerms)
+	i := numTerms - len(e.term)
+	for j := len(e.term) - 1; j >= 0; j-- {
+		result[i] = byte(e.term[j])
+		i++
+	}
+	return result
+}
+
 // Returns a + b
 func gfPolyAdd(a, b gfPoly) gfPoly {
 	numATerms := a.numTerms()
@@ -75,23 +128,6 @@ func gfPolyMultiply(a, b gfPoly) gfPoly {
 	return result.normalised()
 }
 
-func (e gfPoly) normalised() gfPoly {
-	numTerms := e.numTerms()
-	maxNonzeroTerm := numTerms - 1
-	for i := numTerms - 1; i >= 0; i-- {
-		if e.term[i] != 0 {
-			break
-		}
-		maxNonzeroTerm = i - 1
-	}
-	if maxNonzeroTerm < 0 {
-		return gfPoly{}
-	} else if maxNonzeroTerm < numTerms-1 {
-		e.term = e.term[0 : maxNonzeroTerm+1]
-	}
-	return e
-}
-
 // Returns term*(x^degree)
 func newGFPolyMonomial(term gfElement, degree int) gfPoly {
 	result := gfPoly{}
@@ -99,44 +135,6 @@ func newGFPolyMonomial(term gfElement, degree int) gfPoly {
 		result = gfPoly{term: make([]gfElement, degree+1)}
 		result.term[degree] = term
 	}
-	return result
-}
-
-// equals returns true if e == other
-func (e gfPoly) equals(other gfPoly) bool {
-	var minecPoly *gfPoly
-	var maxecPoly *gfPoly
-	if e.numTerms() > other.numTerms() {
-		minecPoly = &other
-		maxecPoly = &e
-	} else {
-		minecPoly = &e
-		maxecPoly = &other
-	}
-	numMinTerms := minecPoly.numTerms()
-	numMaxTerms := maxecPoly.numTerms()
-	for i := 0; i < numMinTerms; i++ {
-		if e.term[i] != other.term[i] {
-			return false
-		}
-	}
-	for i := numMinTerms; i < numMaxTerms; i++ {
-		if maxecPoly.term[i] != 0 {
-			return false
-		}
-	}
-	return true
-}
-
-func (e gfPoly) data(numTerms int) []byte {
-	result := make([]byte, numTerms)
-
-	i := numTerms - len(e.term)
-	for j := len(e.term) - 1; j >= 0; j-- {
-		result[i] = byte(e.term[j])
-		i++
-	}
-
 	return result
 }
 
