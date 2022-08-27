@@ -37,3 +37,8 @@ func (m *symbol) set2dPattern(x int, y int, v [][]bool) {
 		}
 	}
 }
+
+// Returns true if the module at (x, y) has not been set (to either true or false)
+func (m *symbol) empty(x int, y int) bool {
+	return !m.isUsed[y+m.quietZoneSize][x+m.quietZoneSize]
+}
