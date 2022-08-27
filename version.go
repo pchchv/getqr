@@ -2804,6 +2804,12 @@ func (v qrCodeVersion) quietZoneSize() int {
 	return 4
 }
 
+// Returns the size of the QR Code symbol in number of modules (which is both the width and height, since QR codes are square)
+// The QR Code has size symbolSize() x symbolSize() pixels. This does not include the quiet zone
+func (v qrCodeVersion) symbolSize() int {
+	return 21 + (v.version-1)*4
+}
+
 // Chooses the most suitable QR Code version for a stated data length in bits, the error recovery level required, and the data encoder used
 // The chosen QR Code version is the smallest version able to fit numDataBits and the optional terminator bits required by the specified encoder
 // The chosen QR Code version is returned
