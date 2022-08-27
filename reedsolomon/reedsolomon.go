@@ -7,12 +7,9 @@ import (
 )
 
 // Encode data for QR Code 2005 using the appropriate Reed-Solomon code.
-//
 // numECBytes is the number of error correction bytes to append, and is
 // determined by the target QR Code's version and error correction level.
-//
-// ISO/IEC 18004 table 9 specifies the numECBytes required. e.g. a 1-L code has
-// numECBytes=7.
+// ISO/IEC 18004 table 9 specifies the numECBytes required. e.g. a 1-L code has numECBytes=7.
 func Encode(data *bitset.Bitset, numECBytes int) *bitset.Bitset {
 	// Create a polynomial representing |data|.
 	//
@@ -21,25 +18,19 @@ func Encode(data *bitset.Bitset, numECBytes int) *bitset.Bitset {
 	// becomes the x^1 coefficient and so on.
 	ecpoly := newGFPolyFromData(data)
 	ecpoly = gfPolyMultiply(ecpoly, newGFPolyMonomial(gfOne, numECBytes))
-
 	// Pick the generator polynomial.
 	generator := rsGeneratorPoly(numECBytes)
-
 	// Generate the error correction bytes.
 	remainder := gfPolyRemainder(ecpoly, generator)
-
 	// Combine the data & error correcting bytes.
 	// The mathematically correct answer is:
-	//
-	//	result := gfPolyAdd(ecpoly, remainder).
-	//
+	// result := gfPolyAdd(ecpoly, remainder).
 	// The encoding used by QR Code 2005 is slightly different this result: To
 	// preserve the original |data| bit sequence exactly, the data and remainder
 	// are combined manually below. This ensures any most significant zero bits
 	// are preserved (and not optimised away).
 	result := bitset.Clone(data)
 	result.AppendBytes(remainder.data(numECBytes))
-
 	return result
 }
 
