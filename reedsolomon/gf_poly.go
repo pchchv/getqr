@@ -1,6 +1,8 @@
 package reedsolomon
 
 import (
+	"log"
+
 	bitset "github.com/pchchv/getqr/bitset"
 )
 
@@ -34,7 +36,7 @@ func (e gfPoly) numTerms() int {
 	return len(e.term)
 }
 
-// Returns a + b.
+// Returns a + b
 func gfPolyAdd(a, b gfPoly) gfPoly {
 	numATerms := a.numTerms()
 	numBTerms := b.numTerms()
@@ -56,7 +58,7 @@ func gfPolyAdd(a, b gfPoly) gfPoly {
 	return result.normalised()
 }
 
-// Returns a * b.
+// Returns a * b
 func gfPolyMultiply(a, b gfPoly) gfPoly {
 	numATerms := a.numTerms()
 	numBTerms := b.numTerms()
@@ -100,7 +102,7 @@ func newGFPolyMonomial(term gfElement, degree int) gfPoly {
 	return result
 }
 
-// equals returns true if e == other.
+// equals returns true if e == other
 func (e gfPoly) equals(other gfPoly) bool {
 	var minecPoly *gfPoly
 	var maxecPoly *gfPoly
@@ -124,4 +126,21 @@ func (e gfPoly) equals(other gfPoly) bool {
 		}
 	}
 	return true
+}
+
+// Return the remainder of numerator / denominator
+func gfPolyRemainder(numerator, denominator gfPoly) gfPoly {
+	if denominator.equals(gfPoly{}) {
+		log.Panicln("Remainder by zero")
+	}
+	remainder := numerator
+	for remainder.numTerms() >= denominator.numTerms() {
+		degree := remainder.numTerms() - denominator.numTerms()
+		coefficient := gfDivide(remainder.term[remainder.numTerms()-1],
+			denominator.term[denominator.numTerms()-1])
+		divisor := gfPolyMultiply(denominator,
+			newGFPolyMonomial(coefficient, degree))
+		remainder = gfPolyAdd(remainder, divisor)
+	}
+	return remainder.normalised()
 }
