@@ -87,3 +87,14 @@ func gfInverse(a gfElement) gfElement {
 	}
 	return gfExpTable[255-gfLogTable[a]]
 }
+
+// Returns a / b
+// Divide by zero results in a panic.
+func gfDivide(a, b gfElement) gfElement {
+	if a == gfZero {
+		return gfZero
+	} else if b == gfZero {
+		log.Panicln("Divide by zero")
+	}
+	return gfMultiply(a, gfInverse(b))
+}
