@@ -14,8 +14,8 @@ func New(v ...bool) *Bitset {
 	return b
 }
 
-// Ensures the Bitset can store an additional numBits. The underlying array is expanded if necessary.
-// To prevent frequent reallocation, expanding the underlying array at least doubles its capacity.
+// Ensures the Bitset can store an additional numBits. The underlying array is expanded if necessary
+// To prevent frequent reallocation, expanding the underlying array at least doubles its capacity
 func (b *Bitset) ensureCapacity(numBits int) {
 	numBits += b.numBits
 
@@ -43,12 +43,12 @@ func (b *Bitset) AppendBools(bits ...bool) {
 	}
 }
 
-// Len returns the length of the Bitset in bits.
+// Len returns the length of the Bitset in bits
 func (b *Bitset) Len() int {
 	return b.numBits
 }
 
-// Returns the value of the bit at index.
+// Returns the value of the bit at index
 func (b *Bitset) At(index int) bool {
 	if index >= b.numBits {
 		log.Panicf("Index %d out of range", index)
@@ -67,7 +67,7 @@ func (b *Bitset) Append(other *Bitset) {
 	}
 }
 
-// Append the numBits least significant bits from value.
+// Append the numBits least significant bits from value
 func (b *Bitset) AppendUint32(value uint32, numBits int) {
 	b.ensureCapacity(numBits)
 	if numBits > 32 {
@@ -81,7 +81,7 @@ func (b *Bitset) AppendUint32(value uint32, numBits int) {
 	}
 }
 
-// Append the numBits least significant bits from value.
+// Append the numBits least significant bits from value
 func (b *Bitset) AppendByte(value byte, numBits int) {
 	b.ensureCapacity(numBits)
 	if numBits > 8 {
@@ -102,7 +102,7 @@ func (b *Bitset) AppendNumBools(num int, value bool) {
 	}
 }
 
-// Returns a byte consisting of upto 8 bits starting at index.
+// Returns a byte consisting of upto 8 bits starting at index
 func (b *Bitset) ByteAt(index int) byte {
 	if index < 0 || index >= b.numBits {
 		log.Panicf("Index %d out of range", index)
@@ -115,4 +115,9 @@ func (b *Bitset) ByteAt(index int) byte {
 		}
 	}
 	return result
+}
+
+// Clone returns a copy
+func Clone(from *Bitset) *Bitset {
+	return &Bitset{numBits: from.numBits, bits: from.bits[:]}
 }
