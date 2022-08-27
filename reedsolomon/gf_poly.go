@@ -128,6 +128,18 @@ func (e gfPoly) equals(other gfPoly) bool {
 	return true
 }
 
+func (e gfPoly) data(numTerms int) []byte {
+	result := make([]byte, numTerms)
+
+	i := numTerms - len(e.term)
+	for j := len(e.term) - 1; j >= 0; j-- {
+		result[i] = byte(e.term[j])
+		i++
+	}
+
+	return result
+}
+
 // Return the remainder of numerator / denominator
 func gfPolyRemainder(numerator, denominator gfPoly) gfPoly {
 	if denominator.equals(gfPoly{}) {
