@@ -87,3 +87,13 @@ func (e gfPoly) normalised() gfPoly {
 	}
 	return e
 }
+
+// Returns term*(x^degree)
+func newGFPolyMonomial(term gfElement, degree int) gfPoly {
+	result := gfPoly{}
+	if term != gfZero {
+		result = gfPoly{term: make([]gfElement, degree+1)}
+		result.term[degree] = term
+	}
+	return result
+}
