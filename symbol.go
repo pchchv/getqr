@@ -7,3 +7,18 @@ type symbol struct {
 	symbolSize    int      // Width/height of the symbol only
 	quietZoneSize int      // Width/height of a single quiet zone
 }
+
+// Constructs a symbol of size size*size, with a border of quietZoneSize
+func newSymbol(size int, quietZoneSize int) *symbol {
+	var m symbol
+	m.module = make([][]bool, size+2*quietZoneSize)
+	m.isUsed = make([][]bool, size+2*quietZoneSize)
+	for i := range m.module {
+		m.module[i] = make([]bool, size+2*quietZoneSize)
+		m.isUsed[i] = make([]bool, size+2*quietZoneSize)
+	}
+	m.size = size + 2*quietZoneSize
+	m.symbolSize = size
+	m.quietZoneSize = quietZoneSize
+	return &m
+}
