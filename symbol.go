@@ -22,3 +22,9 @@ func newSymbol(size int, quietZoneSize int) *symbol {
 	m.quietZoneSize = quietZoneSize
 	return &m
 }
+
+// Sets the module at (x, y) to v
+func (m *symbol) set(x int, y int, v bool) {
+	m.module[y+m.quietZoneSize][x+m.quietZoneSize] = v
+	m.isUsed[y+m.quietZoneSize][x+m.quietZoneSize] = true
+}
