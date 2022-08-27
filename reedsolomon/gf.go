@@ -1,5 +1,7 @@
 package reedsolomon
 
+import "log"
+
 type gfElement uint8 // Element in GF(2^8).
 
 const (
@@ -64,7 +66,7 @@ var (
 		/* 250 - 255 */ 244, 234, 168, 80, 88, 175}
 )
 
-// Returns a * b.
+// Returns a * b
 func gfMultiply(a, b gfElement) gfElement {
 	if a == gfZero || b == gfZero {
 		return gfZero
@@ -72,7 +74,16 @@ func gfMultiply(a, b gfElement) gfElement {
 	return gfExpTable[(gfLogTable[a]+gfLogTable[b])%255]
 }
 
-// Returns a + b.
+// Returns a + b
 func gfAdd(a, b gfElement) gfElement {
 	return a ^ b
+}
+
+// Returns the multiplicative inverse of a, a^-1
+// a * a^-1 = 1
+func gfInverse(a gfElement) gfElement {
+	if a == gfZero {
+		log.Panicln("No multiplicative inverse of 0")
+	}
+	return gfExpTable[255-gfLogTable[a]]
 }
