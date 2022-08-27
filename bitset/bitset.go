@@ -117,7 +117,14 @@ func (b *Bitset) ByteAt(index int) byte {
 	return result
 }
 
-// Clone returns a copy
+// Returns a copy
 func Clone(from *Bitset) *Bitset {
 	return &Bitset{numBits: from.numBits, bits: from.bits[:]}
+}
+
+// Appends a list of whole bytes
+func (b *Bitset) AppendBytes(data []byte) {
+	for _, d := range data {
+		b.AppendByte(d, 8)
+	}
 }
