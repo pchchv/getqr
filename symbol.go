@@ -28,3 +28,12 @@ func (m *symbol) set(x int, y int, v bool) {
 	m.module[y+m.quietZoneSize][x+m.quietZoneSize] = v
 	m.isUsed[y+m.quietZoneSize][x+m.quietZoneSize] = true
 }
+
+// Sets a 2D array of modules, starting at (x, y)
+func (m *symbol) set2dPattern(x int, y int, v [][]bool) {
+	for j, row := range v {
+		for i, value := range row {
+			m.set(x+i, y+j, value)
+		}
+	}
+}
