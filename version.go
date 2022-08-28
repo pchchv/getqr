@@ -1,5 +1,11 @@
 package getqr
 
+import (
+	"log"
+
+	bitset "github.com/pchchv/getqr/bitset"
+)
+
 const (
 	Low     RecoveryLevel = iota // Level L: 7% error recovery
 	Medium                       // Level M: 15% error recovery. Good default choice
@@ -7,7 +13,50 @@ const (
 	Highest                      // Level H: 30% error recovery
 )
 
+const formatInfoLengthBits = 15
+
 var (
+	// Mapping from the 5 data bits to the completed 15-bit Format Information value
+	// For example, a QR Code using error correction level L, and data mask pattern identifier 001:
+	// 01 | 001 = 01001 = 0x9
+	// formatBitSequence[0x9].qrCode = 0x72f3 = 111001011110011
+	formatBitSequence = []struct {
+		regular uint32
+		micro   uint32
+	}{
+		{0x5412, 0x4445},
+		{0x5125, 0x4172},
+		{0x5e7c, 0x4e2b},
+		{0x5b4b, 0x4b1c},
+		{0x45f9, 0x55ae},
+		{0x40ce, 0x5099},
+		{0x4f97, 0x5fc0},
+		{0x4aa0, 0x5af7},
+		{0x77c4, 0x6793},
+		{0x72f3, 0x62a4},
+		{0x7daa, 0x6dfd},
+		{0x789d, 0x68ca},
+		{0x662f, 0x7678},
+		{0x6318, 0x734f},
+		{0x6c41, 0x7c16},
+		{0x6976, 0x7921},
+		{0x1689, 0x06de},
+		{0x13be, 0x03e9},
+		{0x1ce7, 0x0cb0},
+		{0x19d0, 0x0987},
+		{0x0762, 0x1735},
+		{0x0255, 0x1202},
+		{0x0d0c, 0x1d5b},
+		{0x083b, 0x186c},
+		{0x355f, 0x2508},
+		{0x3068, 0x203f},
+		{0x3f31, 0x2f66},
+		{0x3a06, 0x2a51},
+		{0x24b4, 0x34e3},
+		{0x2183, 0x31d4},
+		{0x2eda, 0x3e8d},
+		{0x2bed, 0x3bba},
+	}
 	versions = []qrCodeVersion{
 		{
 			1,
@@ -2830,4 +2879,29 @@ func chooseQRCodeVersion(level RecoveryLevel, encoder *dataEncoder, numDataBits 
 		}
 	}
 	return chosenVersion
+}
+
+// Returns the 15-bit Format Information value for a QR code.
+func (v qrCodeVersion) formatInfo(maskPattern int) *bitset.Bitset {
+	formatID := 0
+	switch v.level {
+	case Low:
+		formatID = 0x08 // 0b01000
+	case Medium:
+		formatID = 0x00 // 0b00000
+	case High:
+		formatID = 0x18 // 0b11000
+	case Highest:
+		formatID = 0x10 // 0b10000
+	default:
+		log.Panicf("Invalid level %d", v.level)
+	}
+	if maskPattern < 0 || maskPattern > 7 {
+		log.Panicf("Invalid maskPattern %d", maskPattern)
+	}
+	formatID |= maskPattern & 0x7
+	result := bitset.New()
+	result.AppendUint32(formatBitSequence[formatID].regular, formatInfoLengthBits)
+
+	return result
 }
