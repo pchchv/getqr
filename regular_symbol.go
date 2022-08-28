@@ -10,10 +10,16 @@ type regularSymbol struct {
 	size    int
 }
 
+type direction uint8
+
 // Abbreviated true/false.
 const (
 	b0 = false
 	b1 = true
+)
+const (
+	up direction = iota
+	down
 )
 
 var (
@@ -179,4 +185,69 @@ func (m *regularSymbol) addVersionInfo() {
 		// Left of the top right finder pattern.
 		m.symbol.set(m.size-fpSize-4+i%3, i/3, v.At(l-i))
 	}
+}
+
+func (m *regularSymbol) addData() (bool, error) {
+	xOffset := 1
+	dir := up
+	x := m.size - 2
+	y := m.size - 1
+	for i := 0; i < m.data.Len(); i++ {
+		var mask bool
+		switch m.mask {
+		case 0:
+			mask = (y+x+xOffset)%2 == 0
+		case 1:
+			mask = y%2 == 0
+		case 2:
+			mask = (x+xOffset)%3 == 0
+		case 3:
+			mask = (y+x+xOffset)%3 == 0
+		case 4:
+			mask = (y/2+(x+xOffset)/3)%2 == 0
+		case 5:
+			mask = (y*(x+xOffset))%2+(y*(x+xOffset))%3 == 0
+		case 6:
+			mask = ((y*(x+xOffset))%2+((y*(x+xOffset))%3))%2 == 0
+		case 7:
+			mask = ((y+x+xOffset)%2+((y*(x+xOffset))%3))%2 == 0
+		}
+		// != is equivalent to XOR.
+		m.symbol.set(x+xOffset, y, mask != m.data.At(i))
+		if i == m.data.Len()-1 {
+			break
+		}
+		// Find next free bit in the symbol.
+		for {
+			if xOffset == 1 {
+				xOffset = 0
+			} else {
+				xOffset = 1
+
+				if dir == up {
+					if y > 0 {
+						y--
+					} else {
+						dir = down
+						x -= 2
+					}
+				} else {
+					if y < m.size-1 {
+						y++
+					} else {
+						dir = up
+						x -= 2
+					}
+				}
+			}
+			// Skip over the vertical timing pattern entirely.
+			if x == 5 {
+				x--
+			}
+			if m.symbol.empty(x+xOffset, y) {
+				break
+			}
+		}
+	}
+	return true, nil
 }
