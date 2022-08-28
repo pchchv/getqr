@@ -23,15 +23,12 @@ type block struct {
 }
 
 const (
-	Low     RecoveryLevel = iota // Level L: 7% error recovery
-	Medium                       // Level M: 15% error recovery. Good default choice
-	High                         // Level Q: 25% error recovery
-	Highest                      // Level H: 30% error recovery
-)
-
-const (
-	formatInfoLengthBits  = 15
-	versionInfoLengthBits = 18
+	formatInfoLengthBits                = 15
+	versionInfoLengthBits               = 18
+	Low                   RecoveryLevel = iota // Level L: 7% error recovery
+	Medium                                     // Level M: 15% error recovery. Good default choice
+	High                                       // Level Q: 25% error recovery
+	Highest                                    // Level H: 30% error recovery
 )
 
 var (
@@ -2855,17 +2852,6 @@ func (v qrCodeVersion) numDataBits() int {
 	return numDataBits
 }
 
-// Returns the QR code version by version number and recovery level
-// Returns nil if the requested combination is not defined
-func getQRCodeVersion(level RecoveryLevel, version int) *qrCodeVersion {
-	for _, v := range versions {
-		if v.level == level && v.version == version {
-			return &v
-		}
-	}
-	return nil
-}
-
 func (v qrCodeVersion) numTerminatorBitsRequired(numDataBits int) int {
 	var numTerminatorBits int
 	numFreeBits := v.numDataBits() - numDataBits
@@ -2908,28 +2894,6 @@ func (v qrCodeVersion) symbolSize() int {
 	return 21 + (v.version-1)*4
 }
 
-// Chooses the most suitable QR Code version for a stated data length in bits, the error recovery level required, and the data encoder used
-// The chosen QR Code version is the smallest version able to fit numDataBits and the optional terminator bits required by the specified encoder
-// The chosen QR Code version is returned
-func chooseQRCodeVersion(level RecoveryLevel, encoder *dataEncoder, numDataBits int) *qrCodeVersion {
-	var chosenVersion *qrCodeVersion
-	for _, v := range versions {
-		if v.level != level {
-			continue
-		} else if v.version < encoder.minVersion {
-			continue
-		} else if v.version > encoder.maxVersion {
-			break
-		}
-		numFreeBits := v.numDataBits() - numDataBits
-		if numFreeBits >= 0 {
-			chosenVersion = &v
-			break
-		}
-	}
-	return chosenVersion
-}
-
 // Returns the 15-bit Format Information value for a QR code
 func (v qrCodeVersion) formatInfo(maskPattern int) *bitset.Bitset {
 	formatID := 0
@@ -2964,4 +2928,37 @@ func (v qrCodeVersion) versionInfo() *bitset.Bitset {
 	result := bitset.New()
 	result.AppendUint32(versionBitSequence[v.version], 18)
 	return result
+}
+
+// Returns the QR code version by version number and recovery level
+// Returns nil if the requested combination is not defined
+func getQRCodeVersion(level RecoveryLevel, version int) *qrCodeVersion {
+	for _, v := range versions {
+		if v.level == level && v.version == version {
+			return &v
+		}
+	}
+	return nil
+}
+
+// Chooses the most suitable QR Code version for a stated data length in bits, the error recovery level required, and the data encoder used
+// The chosen QR Code version is the smallest version able to fit numDataBits and the optional terminator bits required by the specified encoder
+// The chosen QR Code version is returned
+func chooseQRCodeVersion(level RecoveryLevel, encoder *dataEncoder, numDataBits int) *qrCodeVersion {
+	var chosenVersion *qrCodeVersion
+	for _, v := range versions {
+		if v.level != level {
+			continue
+		} else if v.version < encoder.minVersion {
+			continue
+		} else if v.version > encoder.maxVersion {
+			break
+		}
+		numFreeBits := v.numDataBits() - numDataBits
+		if numFreeBits >= 0 {
+			chosenVersion = &v
+			break
+		}
+	}
+	return chosenVersion
 }

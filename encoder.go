@@ -7,20 +7,6 @@ import (
 	bitset "github.com/pchchv/getqr/bitset"
 )
 
-const (
-	dataEncoderType1To9 dataEncoderType = iota
-	dataEncoderType10To26
-	dataEncoderType27To40
-	// Each dataMode is a subset of the subsequent dataMode:
-	// dataModeNone < dataModeNumeric < dataModeAlphanumeric < dataModeByte
-	// This ordering is important for determining which data modes a character can be encoded with
-	// E.g. 'E' can be encoded in both dataModeAlphanumeric and dataModeByte
-	dataModeNone dataMode = 1 << iota
-	dataModeNumeric
-	dataModeAlphanumeric
-	dataModeByte
-)
-
 // A dataEncoder encodes data for a particular QR Code version
 type dataEncoder struct {
 	minVersion                   int            //Minimum version supported
@@ -46,6 +32,20 @@ type segment struct {
 	dataMode dataMode // Data Mode (e.g. numeric)
 	data     []byte   // segment data (e.g. "abc")
 }
+
+const (
+	dataEncoderType1To9 dataEncoderType = iota
+	dataEncoderType10To26
+	dataEncoderType27To40
+	// Each dataMode is a subset of the subsequent dataMode:
+	// dataModeNone < dataModeNumeric < dataModeAlphanumeric < dataModeByte
+	// This ordering is important for determining which data modes a character can be encoded with
+	// E.g. 'E' can be encoded in both dataModeAlphanumeric and dataModeByte
+	dataModeNone dataMode = 1 << iota
+	dataModeNumeric
+	dataModeAlphanumeric
+	dataModeByte
+)
 
 func newDataEncoder(t dataEncoderType) *dataEncoder {
 	d := &dataEncoder{}

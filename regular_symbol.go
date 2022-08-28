@@ -96,31 +96,6 @@ var (
 	}
 )
 
-func buildRegularSymbol(version qrCodeVersion, mask int,
-	data *bitset.Bitset, includeQuietZone bool) (*symbol, error) {
-	quietZoneSize := 0
-	if includeQuietZone {
-		quietZoneSize = version.quietZoneSize()
-	}
-	m := &regularSymbol{
-		version: version,
-		mask:    mask,
-		data:    data,
-		symbol:  newSymbol(version.symbolSize(), quietZoneSize),
-		size:    version.symbolSize(),
-	}
-	m.addFinderPatterns()
-	m.addAlignmentPatterns()
-	m.addTimingPatterns()
-	m.addFormatInfo()
-	m.addVersionInfo()
-	ok, err := m.addData()
-	if !ok {
-		return nil, err
-	}
-	return m.symbol, nil
-}
-
 func (m *regularSymbol) addFinderPatterns() {
 	fpSize := finderPatternSize
 	fp := finderPattern
@@ -266,4 +241,29 @@ func (m *regularSymbol) addData() (bool, error) {
 		}
 	}
 	return true, nil
+}
+
+func buildRegularSymbol(version qrCodeVersion, mask int,
+	data *bitset.Bitset, includeQuietZone bool) (*symbol, error) {
+	quietZoneSize := 0
+	if includeQuietZone {
+		quietZoneSize = version.quietZoneSize()
+	}
+	m := &regularSymbol{
+		version: version,
+		mask:    mask,
+		data:    data,
+		symbol:  newSymbol(version.symbolSize(), quietZoneSize),
+		size:    version.symbolSize(),
+	}
+	m.addFinderPatterns()
+	m.addAlignmentPatterns()
+	m.addTimingPatterns()
+	m.addFormatInfo()
+	m.addVersionInfo()
+	ok, err := m.addData()
+	if !ok {
+		return nil, err
+	}
+	return m.symbol, nil
 }
