@@ -207,3 +207,12 @@ func (m *symbol) penalty4() int {
 	}
 	return penaltyWeight4 * (numDarkModuleDeviation / (numModules / 20))
 }
+
+// Returns the entire symbol, including the quiet zone
+func (m *symbol) bitmap() [][]bool {
+	module := make([][]bool, len(m.module))
+	for i := range m.module {
+		module[i] = m.module[i][:]
+	}
+	return module
+}
