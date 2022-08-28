@@ -187,3 +187,34 @@ func (q *QRCode) encodeBlocks() *bitset.Bitset {
 	result.AppendNumBools(q.version.numRemainderBits, false)
 	return result
 }
+
+// Completes the steps required to encode the QR Code. These include adding the terminator bits and padding,
+// splitting the data into blocks and applying the error correction, and selecting the best data mask
+func (q *QRCode) encode() {
+	numTerminatorBits := q.version.numTerminatorBitsRequired(q.data.Len())
+	q.addTerminatorBits(numTerminatorBits)
+	q.addPadding()
+	encoded := q.encodeBlocks()
+	const numMasks int = 8
+	penalty := 0
+	for mask := 0; mask < numMasks; mask++ {
+		var s *symbol
+		var err error
+		s, err = buildRegularSymbol(q.version, mask, encoded, !q.DisableBorder)
+		if err != nil {
+			log.Panic(err.Error())
+		}
+		numEmptyModules := s.numEmptyModules()
+		if numEmptyModules != 0 {
+			log.Panicf("bug: numEmptyModules is %d (expected 0) (version=%d)",
+				numEmptyModules, q.VersionNumber)
+		}
+		p := s.penaltyScore()
+		//log.Printf("mask=%d p=%3d p1=%3d p2=%3d p3=%3d p4=%d\n", mask, p, s.penalty1(), s.penalty2(), s.penalty3(), s.penalty4())
+		if q.symbol == nil || p < penalty {
+			q.symbol = s
+			q.mask = mask
+			penalty = p
+		}
+	}
+}
