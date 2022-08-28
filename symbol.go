@@ -42,3 +42,17 @@ func (m *symbol) set2dPattern(x int, y int, v [][]bool) {
 func (m *symbol) empty(x int, y int) bool {
 	return !m.isUsed[y+m.quietZoneSize][x+m.quietZoneSize]
 }
+
+// Returns the number of empty modules. Initially numEmptyModules is symbolSize * symbolSize.
+// After every module has been set (to either true or false), the number of empty modules is zero.
+func (m *symbol) numEmptyModules() int {
+	var count int
+	for y := 0; y < m.symbolSize; y++ {
+		for x := 0; x < m.symbolSize; x++ {
+			if !m.isUsed[y+m.quietZoneSize][x+m.quietZoneSize] {
+				count++
+			}
+		}
+	}
+	return count
+}
