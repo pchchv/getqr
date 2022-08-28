@@ -1,10 +1,12 @@
 package getqr
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"image"
 	"image/color"
+	"image/png"
 	"log"
 
 	bitset "github.com/pchchv/getqr/bitset"
@@ -266,4 +268,24 @@ func (q *QRCode) Image(size int) image.Image {
 	}
 
 	return img
+}
+
+// Returns the QR Code as a PNG image
+// Size is both the image width and height in pixels
+// If size is too small then a larger image is silently returned
+// Negative values for size cause a variable sized image to be returned:
+// See the documentation for Image()
+func (q *QRCode) PNG(size int) ([]byte, error) {
+	img := q.Image(size)
+
+	encoder := png.Encoder{CompressionLevel: png.BestCompression}
+
+	var b bytes.Buffer
+	err := encoder.Encode(&b, img)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return b.Bytes(), nil
 }
