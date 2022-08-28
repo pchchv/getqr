@@ -3,6 +3,7 @@ package getqr
 import (
 	"errors"
 	"fmt"
+	"image"
 	"image/color"
 	"log"
 
@@ -217,4 +218,52 @@ func (q *QRCode) encode() {
 			penalty = p
 		}
 	}
+}
+
+// Returns the QR Code as an image.Image
+// A positive size sets a fixed image width and height (e.g. 256 yields an 256x256px image)
+// Depending on the amount of data encoded, fixed size images can have different amounts of padding (white space around the QR Code)
+// As an alternative, a variable sized image can be generated instead: A negative size causes a variable sized image to be returned
+// The image returned is the minimum size required for the QR Code. Choose a larger negative number to increase the scale of the image
+// e.g. a size of -5 causes each module (QR Code "pixel") to be 5px in size
+func (q *QRCode) Image(size int) image.Image {
+	// Build QR code.
+	q.encode()
+	// Minimum pixels (both width and height) required.
+	realSize := q.symbol.size
+	// Variable size support.
+	if size < 0 {
+		size = size * -1 * realSize
+	}
+	// Actual pixels available to draw the symbol. Automatically increase the
+	// image size if it's not large enough.
+	if size < realSize {
+		size = realSize
+	}
+	// Output image.
+	rect := image.Rectangle{Min: image.Point{0, 0}, Max: image.Point{size, size}}
+	// Saves a few bytes to have them in this order
+	p := color.Palette([]color.Color{q.BackgroundColor, q.ForegroundColor})
+	img := image.NewPaletted(rect, p)
+	fgClr := uint8(img.Palette.Index(q.ForegroundColor))
+	// QR code bitmap.
+	bitmap := q.symbol.bitmap()
+
+	// Map each image pixel to the nearest QR code module.
+	modulesPerPixel := float64(realSize) / float64(size)
+	for y := 0; y < size; y++ {
+		y2 := int(float64(y) * modulesPerPixel)
+		for x := 0; x < size; x++ {
+			x2 := int(float64(x) * modulesPerPixel)
+
+			v := bitmap[y2][x2]
+
+			if v {
+				pos := img.PixOffset(x, y)
+				img.Pix[pos] = fgClr
+			}
+		}
+	}
+
+	return img
 }
