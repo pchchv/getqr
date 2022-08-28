@@ -13,7 +13,10 @@ const (
 	Highest                      // Level H: 30% error recovery
 )
 
-const formatInfoLengthBits = 15
+const (
+	formatInfoLengthBits  = 15
+	versionInfoLengthBits = 18
+)
 
 var (
 	// Mapping from the 5 data bits to the completed 15-bit Format Information value

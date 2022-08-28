@@ -165,3 +165,18 @@ func (m *regularSymbol) addFormatInfo() {
 	// Always dark symbol.
 	m.symbol.set(fpSize+1, m.size-fpSize-1, true)
 }
+
+func (m *regularSymbol) addVersionInfo() {
+	fpSize := finderPatternSize
+	v := m.version.versionInfo()
+	l := versionInfoLengthBits - 1
+	if v == nil {
+		return
+	}
+	for i := 0; i < v.Len(); i++ {
+		// Above the bottom left finder pattern.
+		m.symbol.set(i/3, m.size-fpSize-4+i%3, v.At(l-i))
+		// Left of the top right finder pattern.
+		m.symbol.set(m.size-fpSize-4+i%3, i/3, v.At(l-i))
+	}
+}
