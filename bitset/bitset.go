@@ -18,23 +18,19 @@ func New(v ...bool) *Bitset {
 // To prevent frequent reallocation, expanding the underlying array at least doubles its capacity
 func (b *Bitset) ensureCapacity(numBits int) {
 	numBits += b.numBits
-
 	newNumBytes := numBits / 8
 	if numBits%8 != 0 {
 		newNumBytes++
 	}
-
 	if len(b.bits) >= newNumBytes {
 		return
 	}
-
 	b.bits = append(b.bits, make([]byte, newNumBytes+2*len(b.bits))...)
 }
 
-// AppendBools appends bits to the Bitset.
+// Appends bits to the Bitset
 func (b *Bitset) AppendBools(bits ...bool) {
 	b.ensureCapacity(len(bits))
-
 	for _, v := range bits {
 		if v {
 			b.bits[b.numBits/8] |= 0x80 >> uint(b.numBits%8)
@@ -43,7 +39,7 @@ func (b *Bitset) AppendBools(bits ...bool) {
 	}
 }
 
-// Len returns the length of the Bitset in bits
+// Returns the length of the Bitset in bits
 func (b *Bitset) Len() int {
 	return b.numBits
 }
@@ -56,7 +52,7 @@ func (b *Bitset) At(index int) bool {
 	return (b.bits[index/8] & (0x80 >> byte(index%8))) != 0
 }
 
-// Append bits copied from other. The new length is b.Len() + other.Len().
+// Append bits copied from other. The new length is b.Len() + other.Len()
 func (b *Bitset) Append(other *Bitset) {
 	b.ensureCapacity(other.numBits)
 	for i := 0; i < other.numBits; i++ {
@@ -95,7 +91,7 @@ func (b *Bitset) AppendByte(value byte, numBits int) {
 	}
 }
 
-// Appends num bits of value value.
+// Appends num bits of value value
 func (b *Bitset) AppendNumBools(num int, value bool) {
 	for i := 0; i < num; i++ {
 		b.AppendBools(value)
@@ -124,7 +120,7 @@ func (b *Bitset) AppendBytes(data []byte) {
 	}
 }
 
-// Returns a substring, consisting of the bits from indexes start to end.
+// Returns a substring, consisting of the bits from indexes start to end
 func (b *Bitset) Substr(start int, end int) *Bitset {
 	if start > end || end > b.numBits {
 		log.Panicf("Out of range start=%d end=%d numBits=%d", start, end, b.numBits)

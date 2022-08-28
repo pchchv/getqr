@@ -16,7 +16,7 @@ type gfPoly struct {
 // Returns data as a polynomial over GF(2^8)
 // Each data byte becomes the coefficient of an x term
 // For an n byte input the polynomial is:
-// data[n-1]*(x^n-1) + data[n-2]*(x^n-2) ... + data[0]*(x^0).
+// data[n-1]*(x^n-1) + data[n-2]*(x^n-2) ... + data[0]*(x^0)
 func newGFPolyFromData(data *bitset.Bitset) gfPoly {
 	numTotalBytes := data.Len() / 8
 	if data.Len()%8 != 0 {
@@ -53,7 +53,7 @@ func (e gfPoly) normalised() gfPoly {
 	return e
 }
 
-// equals returns true if e == other
+// Returns true if e == other
 func (e gfPoly) equals(other gfPoly) bool {
 	var minecPoly *gfPoly
 	var maxecPoly *gfPoly

@@ -89,7 +89,7 @@ func gfInverse(a gfElement) gfElement {
 }
 
 // Returns a / b
-// Divide by zero results in a panic.
+// Divide by zero results in a panic
 func gfDivide(a, b gfElement) gfElement {
 	if a == gfZero {
 		return gfZero

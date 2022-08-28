@@ -13,8 +13,8 @@ const (
 	dataEncoderType27To40
 	// Each dataMode is a subset of the subsequent dataMode:
 	// dataModeNone < dataModeNumeric < dataModeAlphanumeric < dataModeByte
-	// This ordering is important for determining which data modes a character can be encoded with.
-	// E.g. 'E' can be encoded in both dataModeAlphanumeric and dataModeByte.
+	// This ordering is important for determining which data modes a character can be encoded with
+	// E.g. 'E' can be encoded in both dataModeAlphanumeric and dataModeByte
 	dataModeNone dataMode = 1 << iota
 	dataModeNumeric
 	dataModeAlphanumeric
@@ -24,16 +24,16 @@ const (
 // A dataEncoder encodes data for a particular QR Code version
 type dataEncoder struct {
 	minVersion                   int            //Minimum version supported
-	maxVersion                   int            // Maximum version supported.
-	numericModeIndicator         *bitset.Bitset // Mode indicator bit sequences.
+	maxVersion                   int            // Maximum version supported
+	numericModeIndicator         *bitset.Bitset // Mode indicator bit sequences
 	alphanumericModeIndicator    *bitset.Bitset
 	byteModeIndicator            *bitset.Bitset
 	numNumericCharCountBits      int // Character count lengths
 	numAlphanumericCharCountBits int
 	numByteCharCountBits         int
-	data                         []byte    // The raw input data.
+	data                         []byte    // The raw input data
 	actual                       []segment // The data classified into unoptimised segmentss
-	optimised                    []segment // The data classified into optimised segments.
+	optimised                    []segment // The data classified into optimised segments
 }
 
 type dataEncoderType uint8
@@ -41,7 +41,7 @@ type dataEncoderType uint8
 // A segment encoding mode
 type dataMode uint8
 
-// segment is a single segment of data.
+// segment is a single segment of data
 type segment struct {
 	dataMode dataMode // Data Mode (e.g. numeric)
 	data     []byte   // segment data (e.g. "abc")
@@ -54,9 +54,9 @@ func newDataEncoder(t dataEncoderType) *dataEncoder {
 		d = &dataEncoder{
 			minVersion:                   1,
 			maxVersion:                   9,
-			numericModeIndicator:         bitset.New(false, false, false, true),
-			alphanumericModeIndicator:    bitset.New(false, false, true, false),
-			byteModeIndicator:            bitset.New(false, true, false, false),
+			numericModeIndicator:         bitset.New(b0, b0, b0, b1),
+			alphanumericModeIndicator:    bitset.New(b0, b0, b1, b0),
+			byteModeIndicator:            bitset.New(b0, b1, b0, b0),
 			numNumericCharCountBits:      10,
 			numAlphanumericCharCountBits: 9,
 			numByteCharCountBits:         8,
@@ -65,9 +65,9 @@ func newDataEncoder(t dataEncoderType) *dataEncoder {
 		d = &dataEncoder{
 			minVersion:                   10,
 			maxVersion:                   26,
-			numericModeIndicator:         bitset.New(false, false, false, true),
-			alphanumericModeIndicator:    bitset.New(false, false, true, false),
-			byteModeIndicator:            bitset.New(false, true, false, false),
+			numericModeIndicator:         bitset.New(b0, b0, b0, b1),
+			alphanumericModeIndicator:    bitset.New(b0, b0, b1, b0),
+			byteModeIndicator:            bitset.New(b0, b1, b0, b0),
 			numNumericCharCountBits:      12,
 			numAlphanumericCharCountBits: 11,
 			numByteCharCountBits:         16,
@@ -76,9 +76,9 @@ func newDataEncoder(t dataEncoderType) *dataEncoder {
 		d = &dataEncoder{
 			minVersion:                   27,
 			maxVersion:                   40,
-			numericModeIndicator:         bitset.New(false, false, false, true),
-			alphanumericModeIndicator:    bitset.New(false, false, true, false),
-			byteModeIndicator:            bitset.New(false, true, false, false),
+			numericModeIndicator:         bitset.New(b0, b0, b0, b1),
+			alphanumericModeIndicator:    bitset.New(b0, b0, b1, b0),
+			byteModeIndicator:            bitset.New(b0, b1, b0, b0),
 			numNumericCharCountBits:      14,
 			numAlphanumericCharCountBits: 13,
 			numByteCharCountBits:         16,
@@ -89,8 +89,8 @@ func newDataEncoder(t dataEncoderType) *dataEncoder {
 	return d
 }
 
-// Encode data as one or more segments and return the encoded data.
-// The returned data does not include the terminator bit sequence.
+// Encode data as one or more segments and return the encoded data
+// The returned data does not include the terminator bit sequence
 func (d *dataEncoder) encode(data []byte) (*bitset.Bitset, error) {
 	d.data = data
 	d.actual = nil
@@ -98,14 +98,14 @@ func (d *dataEncoder) encode(data []byte) (*bitset.Bitset, error) {
 	if len(data) == 0 {
 		return nil, errors.New("no data to encode")
 	}
-	// Classify data into unoptimised segments.
+	// Classify data into unoptimised segments
 	highestRequiredMode := d.classifyDataModes()
 	// Optimise segments.
 	err := d.optimiseDataModes()
 	if err != nil {
 		return nil, err
 	}
-	// Check if a single byte encoded segment would be more efficient.
+	// Check if a single byte encoded segment would be more efficient
 	optimizedLength := 0
 	for _, s := range d.optimised {
 		length, err := d.encodedLength(s.dataMode, len(s.data))
@@ -121,7 +121,7 @@ func (d *dataEncoder) encode(data []byte) (*bitset.Bitset, error) {
 	if singleByteSegmentLength <= optimizedLength {
 		d.optimised = []segment{{dataMode: highestRequiredMode, data: d.data}}
 	}
-	// Encode data.
+	// Encode data
 	encoded := bitset.New()
 	for _, s := range d.optimised {
 		d.encodeDataRaw(s.data, s.dataMode, encoded)
@@ -129,10 +129,10 @@ func (d *dataEncoder) encode(data []byte) (*bitset.Bitset, error) {
 	return encoded, nil
 }
 
-// Classifies the raw data into unoptimised segments.
-// e.g. "123ZZ#!#!" => [numeric, 3, "123"] [alphanumeric, 2, "ZZ"] [byte, 4, "#!#!"].
-// Returns the highest data mode needed to encode the data.
-// e.g. for a mixed numeric/alphanumeric input, the highest is alphanumeric.
+// Classifies the raw data into unoptimised segments
+// e.g. "123ZZ#!#!" => [numeric, 3, "123"] [alphanumeric, 2, "ZZ"] [byte, 4, "#!#!"]
+// Returns the highest data mode needed to encode the data
+// e.g. for a mixed numeric/alphanumeric input, the highest is alphanumeric
 // dataModeNone < dataModeNumeric < dataModeAlphanumeric < dataModeByte
 func (d *dataEncoder) classifyDataModes() dataMode {
 	var start int
@@ -166,31 +166,25 @@ func (d *dataEncoder) classifyDataModes() dataMode {
 }
 
 // Returns the number of bits required to encode n symbols in dataMode. The number of bits required is affected by:
-// - QR code type - Mode Indicator length.
-// - Data mode - the number of bits used to represent data length.
-// - Data mode - the way the data is encoded.
-// - Number of symbols encoded.
-// An error is returned if the mode is not supported, or the length requested is too long.
+// - QR code type - Mode Indicator length
+// - Data mode - the number of bits used to represent data length
+// - Data mode - the way the data is encoded
+// - Number of symbols encoded
+// An error is returned if the mode is not supported, or the length requested is too long
 func (d *dataEncoder) encodedLength(dataMode dataMode, n int) (int, error) {
 	modeIndicator := d.modeIndicator(dataMode)
 	charCountBits := d.charCountBits(dataMode)
-
 	if modeIndicator == nil {
 		return 0, errors.New("mode not supported")
 	}
-
 	maxLength := (1 << uint8(charCountBits)) - 1
-
 	if n > maxLength {
 		return 0, errors.New("length too long to be represented")
 	}
-
 	length := modeIndicator.Len() + charCountBits
-
 	switch dataMode {
 	case dataModeNumeric:
 		length += 10 * (n / 3)
-
 		if n%3 != 0 {
 			length += 1 + 3*(n%3)
 		}
@@ -203,9 +197,9 @@ func (d *dataEncoder) encodedLength(dataMode dataMode, n int) (int, error) {
 	return length, nil
 }
 
-// Optimizes the list of segments to reduce the total length of the output encoded data. The algorithm merges adjacent segments.
-// Segments are merged only if the data modes are compatible and if the merged segment has a shorter encoded length than the individual segments.
-// Multiple segments may be merged. For example, a string of alternating alternating alphanumeric/numeric segments ANANANA may be optimized to just A.
+// Optimizes the list of segments to reduce the total length of the output encoded data. The algorithm merges adjacent segments
+// Segments are merged only if the data modes are compatible and if the merged segment has a shorter encoded length than the individual segments
+// Multiple segments may be merged. For example, a string of alternating alternating alphanumeric/numeric segments ANANANA may be optimized to just A
 func (d *dataEncoder) optimiseDataModes() error {
 	for i := 0; i < len(d.actual); {
 		mode := d.actual[i].dataMode
@@ -247,23 +241,21 @@ func (d *dataEncoder) optimiseDataModes() error {
 	return nil
 }
 
-// Encodes data in dataMode. The encoded data is appended to encoded.
+// Encodes data in dataMode. The encoded data is appended to encoded
 func (d *dataEncoder) encodeDataRaw(data []byte, dataMode dataMode, encoded *bitset.Bitset) {
 	modeIndicator := d.modeIndicator(dataMode)
 	charCountBits := d.charCountBits(dataMode)
-	// Append mode indicator.
+	// Append mode indicator
 	encoded.Append(modeIndicator)
-	// Append character count.
+	// Append character count
 	encoded.AppendUint32(uint32(len(data)), charCountBits)
-	// Append data.
+	// Append data
 	switch dataMode {
 	case dataModeNumeric:
 		for i := 0; i < len(data); i += 3 {
 			charsRemaining := len(data) - i
-
 			var value uint32
 			bitsUsed := 1
-
 			for j := 0; j < charsRemaining && j < 3; j++ {
 				value *= 10
 				value += uint32(data[i+j] - 0x30)
@@ -308,8 +300,7 @@ func (d *dataEncoder) modeIndicator(dataMode dataMode) *bitset.Bitset {
 	return nil
 }
 
-// Returns the number of bits used to encode the length of a data
-// segment of type dataMode.
+// Returns the number of bits used to encode the length of a data segment of type dataMode
 func (d *dataEncoder) charCountBits(dataMode dataMode) int {
 	switch dataMode {
 	case dataModeNumeric:
@@ -321,20 +312,19 @@ func (d *dataEncoder) charCountBits(dataMode dataMode) int {
 	default:
 		log.Panic("Unknown data mode")
 	}
-
 	return 0
 }
 
 // Returns the QR Code encoded value of v, v must be a QR Code defined alphanumeric character:
-// 0-9, A-Z, SP, $%*+-./ or :. The characters are mapped to values in the range 0-44 respectively.
+// 0-9, A-Z, SP, $%*+-./ or :. The characters are mapped to values in the range 0-44 respectively
 func encodeAlphanumericCharacter(v byte) uint32 {
 	c := uint32(v)
 	switch {
 	case c >= '0' && c <= '9':
-		// 0-9 encoded as 0-9.
+		// 0-9 encoded as 0-9
 		return c - '0'
 	case c >= 'A' && c <= 'Z':
-		// A-Z encoded as 10-35.
+		// A-Z encoded as 10-35
 		return c - 'A' + 10
 	case c == ' ':
 		return 36
