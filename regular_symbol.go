@@ -121,3 +121,12 @@ func (m *regularSymbol) addAlignmentPatterns() {
 		}
 	}
 }
+
+func (m *regularSymbol) addTimingPatterns() {
+	value := true
+	for i := finderPatternSize + 1; i < m.size-finderPatternSize; i++ {
+		m.symbol.set(i, finderPatternSize-1, value)
+		m.symbol.set(finderPatternSize-1, i, value)
+		value = !value
+	}
+}
