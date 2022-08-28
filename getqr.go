@@ -16,11 +16,12 @@ type QRCode struct {
 	VersionNumber   int
 	BackgroundColor color.Color // User settable drawing options
 	ForegroundColor color.Color
+	DisableBorder   bool // Disable the QR Code border.
 	Border          bool // QR Code border. True — borders are enabled
 	encoder         *dataEncoder
 	version         qrCodeVersion
 	data            *bitset.Bitset
-	synbol          *symbol
+	symbol          *symbol
 	mask            int
 }
 
