@@ -56,3 +56,9 @@ func (m *symbol) numEmptyModules() int {
 	}
 	return count
 }
+
+// get returns the module value at (x, y).
+func (m *symbol) get(x int, y int) (v bool) {
+	v = m.module[y+m.quietZoneSize][x+m.quietZoneSize]
+	return
+}
