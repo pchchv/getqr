@@ -57,6 +57,52 @@ var (
 		{0x2eda, 0x3e8d},
 		{0x2bed, 0x3bba},
 	}
+	// Mapping from QR Code version to the completed 18-bit Version Information value
+	// For example, a QR code of version 7:
+	// versionBitSequence[0x7] = 0x07c94 = 000111110010010100
+	versionBitSequence = []uint32{
+		0x00000,
+		0x00000,
+		0x00000,
+		0x00000,
+		0x00000,
+		0x00000,
+		0x00000,
+		0x07c94,
+		0x085bc,
+		0x09a99,
+		0x0a4d3,
+		0x0bbf6,
+		0x0c762,
+		0x0d847,
+		0x0e60d,
+		0x0f928,
+		0x10b78,
+		0x1145d,
+		0x12a17,
+		0x13532,
+		0x149a6,
+		0x15683,
+		0x168c9,
+		0x177ec,
+		0x18ec4,
+		0x191e1,
+		0x1afab,
+		0x1b08e,
+		0x1cc1a,
+		0x1d33f,
+		0x1ed75,
+		0x1f250,
+		0x209d5,
+		0x216f0,
+		0x228ba,
+		0x2379f,
+		0x24b0b,
+		0x2542e,
+		0x26a64,
+		0x27541,
+		0x28c69,
+	}
 	versions = []qrCodeVersion{
 		{
 			1,
@@ -2902,6 +2948,17 @@ func (v qrCodeVersion) formatInfo(maskPattern int) *bitset.Bitset {
 	formatID |= maskPattern & 0x7
 	result := bitset.New()
 	result.AppendUint32(formatBitSequence[formatID].regular, formatInfoLengthBits)
+	return result
+}
 
+// Returns the 18-bit Version Information value for a QR Code
+// Version Information is applicable only to QR Codes versions 7-40 inclusive
+// nil is returned if Version Information is not required
+func (v qrCodeVersion) versionInfo() *bitset.Bitset {
+	if v.version < 7 {
+		return nil
+	}
+	result := bitset.New()
+	result.AppendUint32(versionBitSequence[v.version], 18)
 	return result
 }
