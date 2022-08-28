@@ -289,3 +289,17 @@ func (q *QRCode) PNG(size int) ([]byte, error) {
 
 	return b.Bytes(), nil
 }
+
+// Encode a QR Code and return a raw PNG image
+// Size is both the image width and height in pixels
+// If size is too small then a larger image is silently returned
+// Negative values for size cause a variable sized image to be returned:
+// See the documentation for Image()
+// To serve over HTTP, remember to send a Content-Type: image/png header
+func Encode(content string, level RecoveryLevel, size int) ([]byte, error) {
+	q, err := New(content, level)
+	if err != nil {
+		return nil, err
+	}
+	return q.PNG(size)
+}
