@@ -130,3 +130,38 @@ func (m *regularSymbol) addTimingPatterns() {
 		value = !value
 	}
 }
+
+func (m *regularSymbol) addFormatInfo() {
+	fpSize := finderPatternSize
+	l := formatInfoLengthBits - 1
+
+	f := m.version.formatInfo(m.mask)
+
+	// Bits 0-7, under the top right finder pattern.
+	for i := 0; i <= 7; i++ {
+		m.symbol.set(m.size-i-1, fpSize+1, f.At(l-i))
+	}
+
+	// Bits 0-5, right of the top left finder pattern.
+	for i := 0; i <= 5; i++ {
+		m.symbol.set(fpSize+1, i, f.At(l-i))
+	}
+
+	// Bits 6-8 on the corner of the top left finder pattern.
+	m.symbol.set(fpSize+1, fpSize, f.At(l-6))
+	m.symbol.set(fpSize+1, fpSize+1, f.At(l-7))
+	m.symbol.set(fpSize, fpSize+1, f.At(l-8))
+
+	// Bits 9-14 on the underside of the top left finder pattern.
+	for i := 9; i <= 14; i++ {
+		m.symbol.set(14-i, fpSize+1, f.At(l-i))
+	}
+
+	// Bits 8-14 on the right side of the bottom left finder pattern.
+	for i := 8; i <= 14; i++ {
+		m.symbol.set(fpSize+1, m.size-fpSize+i-8, f.At(l-i))
+	}
+
+	// Always dark symbol.
+	m.symbol.set(fpSize+1, m.size-fpSize-1, true)
+}
