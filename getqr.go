@@ -15,11 +15,11 @@ import (
 
 type QRCode struct {
 	Content         string        // Original content encoded
-	Level           RecoveryLevel // QR Code type.
+	Level           RecoveryLevel // QR Code type
 	VersionNumber   int
 	BackgroundColor color.Color // User settable drawing options
 	ForegroundColor color.Color
-	DisableBorder   bool // Disable the QR Code border.
+	DisableBorder   bool // Disable the QR Code border
 	Border          bool // QR Code border. True — borders are enabled
 	encoder         *dataEncoder
 	version         qrCodeVersion
@@ -106,29 +106,29 @@ func NewWithForcedVersion(content string, version int, level RecoveryLevel) (*QR
 }
 
 // Adds final terminator bits to the encoded data. The number of terminator bits required is determined when the QR Code version is chosen
-// The terminator bits are thus added after the QR Code version is chosen, rather than at the data encoding stage.
+// The terminator bits are thus added after the QR Code version is chosen, rather than at the data encoding stage
 func (q *QRCode) addTerminatorBits(numTerminatorBits int) {
 	q.data.AppendNumBools(numTerminatorBits, false)
 }
 
-// Pads the encoded data upto the full length required.
+// Pads the encoded data upto the full length required
 func (q *QRCode) addPadding() {
 	numDataBits := q.version.numDataBits()
 	if q.data.Len() == numDataBits {
 		return
 	}
-	// Pad to the nearest codeword boundary.
+	// Pad to the nearest codeword boundary
 	q.data.AppendNumBools(q.version.numBitsToPadToCodeword(q.data.Len()), false)
-	// Pad codewords 0b11101100 and 0b00010001.
+	// Pad codewords 0b11101100 and 0b00010001
 	padding := [2]*bitset.Bitset{
 		bitset.New(true, true, true, false, true, true, false, false),
 		bitset.New(false, false, false, true, false, false, false, true),
 	}
-	// Insert pad codewords alternately.
+	// Insert pad codewords alternately
 	i := 0
 	for numDataBits-q.data.Len() >= 8 {
 		q.data.Append(padding[i])
-		i = 1 - i // Alternate between 0 and 1.
+		i = 1 - i // Alternate between 0 and 1
 	}
 	if q.data.Len() != numDataBits {
 		log.Panicf("BUG: got len %d, expected %d", q.data.Len(), numDataBits)
@@ -137,9 +137,9 @@ func (q *QRCode) addPadding() {
 
 // Takes the completed (terminated & padded) encoded data, splits the data into blocks (as specified by the QR Code version),
 // applies error correction to each block, then interleaves the blocks together
-// The QR Code's final data sequence is returned.
+// The QR Code's final data sequence is returned
 func (q *QRCode) encodeBlocks() *bitset.Bitset {
-	// Split into blocks.
+	// Split into blocks
 	type dataBlock struct {
 		data          *bitset.Bitset
 		ecStartOffset int
@@ -159,9 +159,9 @@ func (q *QRCode) encodeBlocks() *bitset.Bitset {
 			blockID++
 		}
 	}
-	// Interleave the blocks.
+	// Interleave the blocks
 	result := bitset.New()
-	// Combine data blocks.
+	// Combine data blocks
 	working := true
 	for i := 0; working; i += 8 {
 		working = false
@@ -173,7 +173,7 @@ func (q *QRCode) encodeBlocks() *bitset.Bitset {
 			working = true
 		}
 	}
-	// Combine error correction blocks.
+	// Combine error correction blocks
 	working = true
 	for i := 0; working; i += 8 {
 		working = false
@@ -213,7 +213,6 @@ func (q *QRCode) encode() {
 				numEmptyModules, q.VersionNumber)
 		}
 		p := s.penaltyScore()
-		//log.Printf("mask=%d p=%3d p1=%3d p2=%3d p3=%3d p4=%d\n", mask, p, s.penalty1(), s.penalty2(), s.penalty3(), s.penalty4())
 		if q.symbol == nil || p < penalty {
 			q.symbol = s
 			q.mask = mask
@@ -229,44 +228,39 @@ func (q *QRCode) encode() {
 // The image returned is the minimum size required for the QR Code. Choose a larger negative number to increase the scale of the image
 // e.g. a size of -5 causes each module (QR Code "pixel") to be 5px in size
 func (q *QRCode) Image(size int) image.Image {
-	// Build QR code.
+	// Build QR code
 	q.encode()
-	// Minimum pixels (both width and height) required.
+	// Minimum pixels (both width and height) required
 	realSize := q.symbol.size
-	// Variable size support.
+	// Variable size support
 	if size < 0 {
 		size = size * -1 * realSize
 	}
-	// Actual pixels available to draw the symbol. Automatically increase the
-	// image size if it's not large enough.
+	// Actual pixels available to draw the symbol. Automatically increase the image size if it's not large enough
 	if size < realSize {
 		size = realSize
 	}
-	// Output image.
+	// Output image
 	rect := image.Rectangle{Min: image.Point{0, 0}, Max: image.Point{size, size}}
 	// Saves a few bytes to have them in this order
 	p := color.Palette([]color.Color{q.BackgroundColor, q.ForegroundColor})
 	img := image.NewPaletted(rect, p)
 	fgClr := uint8(img.Palette.Index(q.ForegroundColor))
-	// QR code bitmap.
+	// QR code bitmap
 	bitmap := q.symbol.bitmap()
-
-	// Map each image pixel to the nearest QR code module.
+	// Map each image pixel to the nearest QR code module
 	modulesPerPixel := float64(realSize) / float64(size)
 	for y := 0; y < size; y++ {
 		y2 := int(float64(y) * modulesPerPixel)
 		for x := 0; x < size; x++ {
 			x2 := int(float64(x) * modulesPerPixel)
-
 			v := bitmap[y2][x2]
-
 			if v {
 				pos := img.PixOffset(x, y)
 				img.Pix[pos] = fgClr
 			}
 		}
 	}
-
 	return img
 }
 
@@ -277,16 +271,12 @@ func (q *QRCode) Image(size int) image.Image {
 // See the documentation for Image()
 func (q *QRCode) PNG(size int) ([]byte, error) {
 	img := q.Image(size)
-
 	encoder := png.Encoder{CompressionLevel: png.BestCompression}
-
 	var b bytes.Buffer
 	err := encoder.Encode(&b, img)
-
 	if err != nil {
 		return nil, err
 	}
-
 	return b.Bytes(), nil
 }
 

@@ -6,6 +6,22 @@ import (
 	bitset "github.com/pchchv/getqr/bitset"
 )
 
+type RecoveryLevel int
+
+type qrCodeVersion struct {
+	version          int           // Version number (1-40)
+	level            RecoveryLevel // Error recovery level
+	dataEncoderType  dataEncoderType
+	block            []block // The encoded data can be broken into blocks. They contain data and error recovery bytes. Larger QR codes contain more blocks
+	numRemainderBits int     // Number of bits required to pad the combined data and error correction bit stream up to the symbol's full capacity
+}
+
+type block struct {
+	numBlocks        int
+	numCodewords     int // Total codewords (numErrorCodewords+numDataCodewords)
+	numDataCodewords int // Number of data codewords
+}
+
 const (
 	Low     RecoveryLevel = iota // Level L: 7% error recovery
 	Medium                       // Level M: 15% error recovery. Good default choice
@@ -2830,22 +2846,6 @@ var (
 	}
 )
 
-type RecoveryLevel int
-
-type qrCodeVersion struct {
-	version          int           // Version number (1-40)
-	level            RecoveryLevel // Error recovery level
-	dataEncoderType  dataEncoderType
-	block            []block // The encoded data can be broken into blocks. They contain data and error recovery bytes. Larger QR codes contain more blocks.
-	numRemainderBits int     // Number of bits required to pad the combined data and error correction bit stream up to the symbol's full capacity.
-}
-
-type block struct {
-	numBlocks        int
-	numCodewords     int // Total codewords (numErrorCodewords+numDataCodewords)
-	numDataCodewords int // Number of data codewords
-}
-
 // Returns the data capacity in bits
 func (v qrCodeVersion) numDataBits() int {
 	numDataBits := 0
@@ -2863,13 +2863,12 @@ func getQRCodeVersion(level RecoveryLevel, version int) *qrCodeVersion {
 			return &v
 		}
 	}
-
 	return nil
 }
 
 func (v qrCodeVersion) numTerminatorBitsRequired(numDataBits int) int {
-	numFreeBits := v.numDataBits() - numDataBits
 	var numTerminatorBits int
+	numFreeBits := v.numDataBits() - numDataBits
 	switch {
 	case numFreeBits >= 4:
 		numTerminatorBits = 4
@@ -2879,7 +2878,7 @@ func (v qrCodeVersion) numTerminatorBitsRequired(numDataBits int) int {
 	return numTerminatorBits
 }
 
-// Returns the number of bits required to pad data of length numDataBits upto the nearest codeword size.
+// Returns the number of bits required to pad data of length numDataBits upto the nearest codeword size
 func (v qrCodeVersion) numBitsToPadToCodeword(numDataBits int) int {
 	if numDataBits == v.numDataBits() {
 		return 0
@@ -2897,13 +2896,14 @@ func (v qrCodeVersion) numBlocks() int {
 }
 
 // Returns the number of pixels of border space on each side of the QR Code
-// The quiet space assists with decoding.
+// The quiet space assists with decoding
 func (v qrCodeVersion) quietZoneSize() int {
 	return 4
 }
 
 // Returns the size of the QR Code symbol in number of modules (which is both the width and height, since QR codes are square)
-// The QR Code has size symbolSize() x symbolSize() pixels. This does not include the quiet zone
+// The QR Code has size symbolSize() x symbolSize() pixels
+// This does not include the quiet zone
 func (v qrCodeVersion) symbolSize() int {
 	return 21 + (v.version-1)*4
 }
@@ -2930,7 +2930,7 @@ func chooseQRCodeVersion(level RecoveryLevel, encoder *dataEncoder, numDataBits 
 	return chosenVersion
 }
 
-// Returns the 15-bit Format Information value for a QR code.
+// Returns the 15-bit Format Information value for a QR code
 func (v qrCodeVersion) formatInfo(maskPattern int) *bitset.Bitset {
 	formatID := 0
 	switch v.level {

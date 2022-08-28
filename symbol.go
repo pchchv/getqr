@@ -51,8 +51,8 @@ func (m *symbol) empty(x int, y int) bool {
 	return !m.isUsed[y+m.quietZoneSize][x+m.quietZoneSize]
 }
 
-// Returns the number of empty modules. Initially numEmptyModules is symbolSize * symbolSize.
-// After every module has been set (to either true or false), the number of empty modules is zero.
+// Returns the number of empty modules. Initially numEmptyModules is symbolSize * symbolSize
+// After every module has been set (to either true or false), the number of empty modules is zero
 func (m *symbol) numEmptyModules() int {
 	var count int
 	for y := 0; y < m.symbolSize; y++ {
@@ -65,7 +65,7 @@ func (m *symbol) numEmptyModules() int {
 	return count
 }
 
-// get returns the module value at (x, y).
+// get returns the module value at (x, y)
 func (m *symbol) get(x int, y int) (v bool) {
 	v = m.module[y+m.quietZoneSize][x+m.quietZoneSize]
 	return
@@ -123,7 +123,7 @@ func (m *symbol) penalty1() int {
 }
 
 // penalty2 returns the penalty score for "block of modules in the same colour"
-// m*n: score = penaltyWeight2 * (m-1) * (n-1).
+// m*n: score = penaltyWeight2 * (m-1) * (n-1)
 func (m *symbol) penalty2() int {
 	penalty := 0
 	for y := 1; y < m.symbolSize; y++ {
