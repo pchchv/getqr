@@ -7,6 +7,7 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"io"
 	"log"
 
 	bitset "github.com/pchchv/getqr/bitset"
@@ -278,6 +279,18 @@ func (q *QRCode) PNG(size int) ([]byte, error) {
 		return nil, err
 	}
 	return b.Bytes(), nil
+}
+
+// Writes the QR Code as a PNG image to io.Writer size is both the image width and height in pixels
+// If size is too small then a larger image is silently written
+// Negative values for size cause a variable sized image to be written: See the documentation for Image()
+func (q *QRCode) Write(size int, out io.Writer) error {
+	png, err := q.PNG(size)
+	if err != nil {
+		return err
+	}
+	_, err = out.Write(png)
+	return err
 }
 
 // Encode a QR Code and return a raw PNG image
