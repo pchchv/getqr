@@ -331,6 +331,44 @@ func (q *QRCode) ToString(inverseColor bool) string {
 	return buf.String()
 }
 
+// Produces a multi-line string that forms a QR-code image, a factor two smaller in x and y then ToString
+func (q *QRCode) ToSmallString(inverseColor bool) string {
+	bits := q.Bitmap()
+	var buf bytes.Buffer
+	// If there is an odd number of rows, the last one needs special treatment
+	for y := 0; y < len(bits)-1; y += 2 {
+		for x := range bits[y] {
+			if bits[y][x] == bits[y+1][x] {
+				if bits[y][x] != inverseColor {
+					buf.WriteString(" ")
+				} else {
+					buf.WriteString("█")
+				}
+			} else {
+				if bits[y][x] != inverseColor {
+					buf.WriteString("▄")
+				} else {
+					buf.WriteString("▀")
+				}
+			}
+		}
+		buf.WriteString("\n")
+	}
+	// Special treatment for the last row if odd
+	if len(bits)%2 == 1 {
+		y := len(bits) - 1
+		for x := range bits[y] {
+			if bits[y][x] != inverseColor {
+				buf.WriteString(" ")
+			} else {
+				buf.WriteString("▀")
+			}
+		}
+		buf.WriteString("\n")
+	}
+	return buf.String()
+}
+
 // Encode a QR Code and return a raw PNG image
 // Size is both the image width and height in pixels
 // If size is too small then a larger image is silently returned
