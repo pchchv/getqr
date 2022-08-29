@@ -314,6 +314,23 @@ func (q *QRCode) WriteFile(size int, filename string) error {
 	return ioutil.WriteFile(filename, png, os.FileMode(0644))
 }
 
+// Produces a multi-line string that forms a QR-code image
+func (q *QRCode) ToString(inverseColor bool) string {
+	bits := q.Bitmap()
+	var buf bytes.Buffer
+	for y := range bits {
+		for x := range bits[y] {
+			if bits[y][x] != inverseColor {
+				buf.WriteString("  ")
+			} else {
+				buf.WriteString("██")
+			}
+		}
+		buf.WriteString("\n")
+	}
+	return buf.String()
+}
+
 // Encode a QR Code and return a raw PNG image
 // Size is both the image width and height in pixels
 // If size is too small then a larger image is silently returned
