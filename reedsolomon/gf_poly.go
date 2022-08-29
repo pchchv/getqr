@@ -1,6 +1,7 @@
 package reedsolomon
 
 import (
+	"fmt"
 	"log"
 
 	bitset "github.com/pchchv/getqr/bitset"
@@ -27,6 +28,16 @@ func newGFPolyFromData(data *bitset.Bitset) gfPoly {
 	for j := 0; j < data.Len(); j += 8 {
 		result.term[i] = gfElement(data.ByteAt(j))
 		i--
+	}
+	return result
+}
+
+// Returns term*(x^degree)
+func newGFPolyMonomial(term gfElement, degree int) gfPoly {
+	result := gfPoly{}
+	if term != gfZero {
+		result = gfPoly{term: make([]gfElement, degree+1)}
+		result.term[degree] = term
 	}
 	return result
 }
@@ -89,6 +100,27 @@ func (e gfPoly) data(numTerms int) []byte {
 	return result
 }
 
+func (e gfPoly) string(useIndexForm bool) string {
+	var str string
+	numTerms := e.numTerms()
+	for i := numTerms - 1; i >= 0; i-- {
+		if e.term[i] > 0 {
+			if len(str) > 0 {
+				str += " + "
+			}
+			if !useIndexForm {
+				str += fmt.Sprintf("%dx^%d", e.term[i], i)
+			} else {
+				str += fmt.Sprintf("a^%dx^%d", gfLogTable[e.term[i]], i)
+			}
+		}
+	}
+	if len(str) == 0 {
+		str = "0"
+	}
+	return str
+}
+
 // Returns a + b
 func gfPolyAdd(a, b gfPoly) gfPoly {
 	numATerms := a.numTerms()
@@ -126,16 +158,6 @@ func gfPolyMultiply(a, b gfPoly) gfPoly {
 		}
 	}
 	return result.normalised()
-}
-
-// Returns term*(x^degree)
-func newGFPolyMonomial(term gfElement, degree int) gfPoly {
-	result := gfPoly{}
-	if term != gfZero {
-		result = gfPoly{term: make([]gfElement, degree+1)}
-		result.term[degree] = term
-	}
-	return result
 }
 
 // Return the remainder of numerator / denominator
