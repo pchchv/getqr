@@ -194,6 +194,14 @@ func (q *QRCode) encodeBlocks() *bitset.Bitset {
 	return result
 }
 
+// Returns the QR Code as a 2D array of 1-bit pixels bitmap[y][x] is true if the pixel at (x, y) is set
+// The bitmap includes the required "quiet zone" around the QR Code to aid decoding.
+func (q *QRCode) Bitmap() [][]bool {
+	// Build QR code
+	q.encode()
+	return q.symbol.bitmap()
+}
+
 // Completes the steps required to encode the QR Code. These include adding the terminator bits and padding,
 // splitting the data into blocks and applying the error correction, and selecting the best data mask
 func (q *QRCode) encode() {
