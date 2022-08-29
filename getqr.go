@@ -390,3 +390,19 @@ func max(a int, b int) int {
 	}
 	return b
 }
+
+// Encodes, then writes a QR Code to the given filename in PNG format
+// Allows you to specify the colors you want to use
+// Size is both the image width and height in pixels
+// If size is too small then a larger image is silently written
+// Negative values for size cause a variable sized image to be written: See the documentation for Image()
+func WriteColorFile(content string, level RecoveryLevel, size int, background,
+	foreground color.Color, filename string) error {
+	q, err := New(content, level)
+	if err != nil {
+		return err
+	}
+	q.BackgroundColor = background
+	q.ForegroundColor = foreground
+	return q.WriteFile(size, filename)
+}
