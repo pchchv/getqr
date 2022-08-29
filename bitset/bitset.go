@@ -155,6 +155,16 @@ func (b *Bitset) String() string {
 	return fmt.Sprintf("numBits=%d, bits=%s", b.numBits, bitString)
 }
 
+// Returns the contents of the Bitset
+func (b *Bitset) Bits() []bool {
+	result := make([]bool, b.numBits)
+	var i int
+	for i = 0; i < b.numBits; i++ {
+		result[i] = (b.bits[i/8] & (0x80 >> byte(i%8))) != 0
+	}
+	return result
+}
+
 // Returns a copy
 func Clone(from *Bitset) *Bitset {
 	return &Bitset{numBits: from.numBits, bits: from.bits[:]}
