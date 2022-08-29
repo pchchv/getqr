@@ -1,6 +1,9 @@
 package bitset
 
-import "log"
+import (
+	"fmt"
+	"log"
+)
 
 // Bitset stores an array of bits.
 type Bitset struct {
@@ -134,6 +137,22 @@ func (b *Bitset) Substr(start int, end int) *Bitset {
 		result.numBits++
 	}
 	return result
+}
+
+// Returns a human readable representation of the Bitset's contents
+func (b *Bitset) String() string {
+	var bitString string
+	for i := 0; i < b.numBits; i++ {
+		if (i % 8) == 0 {
+			bitString += " "
+		}
+		if (b.bits[i/8] & (0x80 >> byte(i%8))) != 0 {
+			bitString += "1"
+		} else {
+			bitString += "0"
+		}
+	}
+	return fmt.Sprintf("numBits=%d, bits=%s", b.numBits, bitString)
 }
 
 // Returns a copy
