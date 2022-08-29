@@ -140,3 +140,23 @@ func (b *Bitset) Substr(start int, end int) *Bitset {
 func Clone(from *Bitset) *Bitset {
 	return &Bitset{numBits: from.numBits, bits: from.bits[:]}
 }
+
+// Constructs and returns a Bitset from a string
+// The string consists of '1', '0' or ' ' characters, e.g. "1010 0101". The '1' and '0'
+// characters represent true/false bits respectively, and ' ' characters are ignored
+// The function panics if the input string contains other characters
+func NewFromBase2String(b2string string) *Bitset {
+	b := &Bitset{numBits: 0, bits: make([]byte, 0)}
+	for _, c := range b2string {
+		switch c {
+		case '1':
+			b.AppendBools(true)
+		case '0':
+			b.AppendBools(false)
+		case ' ':
+		default:
+			log.Panicf("Invalid char %c in NewFromBase2String", c)
+		}
+	}
+	return b
+}
