@@ -1,6 +1,7 @@
 package bitset
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 )
@@ -168,6 +169,24 @@ func (b *Bitset) Bits() []bool {
 // Returns a copy
 func Clone(from *Bitset) *Bitset {
 	return &Bitset{numBits: from.numBits, bits: from.bits[:]}
+}
+
+// Returns true if the Bitset equals other
+func (b *Bitset) Equals(other *Bitset) bool {
+	if b.numBits != other.numBits {
+		return false
+	}
+	if !bytes.Equal(b.bits[0:b.numBits/8], other.bits[0:b.numBits/8]) {
+		return false
+	}
+	for i := 8 * (b.numBits / 8); i < b.numBits; i++ {
+		a := (b.bits[i/8] & (0x80 >> byte(i%8)))
+		b := (other.bits[i/8] & (0x80 >> byte(i%8)))
+		if a != b {
+			return false
+		}
+	}
+	return true
 }
 
 // Constructs and returns a Bitset from a string
