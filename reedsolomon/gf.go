@@ -103,3 +103,9 @@ func gfDivide(a, b gfElement) gfElement {
 	}
 	return gfMultiply(a, gfInverse(b))
 }
+
+// Returns a - b
+// Note addition is equivalent to subtraction in GF(2)
+func gfSub(a, b gfElement) gfElement {
+	return a ^ b
+}
