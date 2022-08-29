@@ -382,3 +382,11 @@ func Encode(content string, level RecoveryLevel, size int) ([]byte, error) {
 	}
 	return q.PNG(size)
 }
+
+// Returns the maximum of a and b
+func max(a int, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
