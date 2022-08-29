@@ -66,6 +66,11 @@ var (
 		/* 250 - 255 */ 244, 234, 168, 80, 88, 175}
 )
 
+// Creates and returns a new gfElement
+func newGFElement(data byte) gfElement {
+	return gfElement(data)
+}
+
 // Returns a * b
 func gfMultiply(a, b gfElement) gfElement {
 	if a == gfZero || b == gfZero {
