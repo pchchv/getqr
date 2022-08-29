@@ -349,3 +349,18 @@ func encodeAlphanumericCharacter(v byte) uint32 {
 	}
 	return 0
 }
+
+// Returns d as a short printable string
+func dataModeString(d dataMode) string {
+	switch d {
+	case dataModeNone:
+		return "none"
+	case dataModeNumeric:
+		return "numeric"
+	case dataModeAlphanumeric:
+		return "alphanumeric"
+	case dataModeByte:
+		return "byte"
+	}
+	return "unknown"
+}
