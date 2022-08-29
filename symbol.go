@@ -71,6 +71,24 @@ func (m *symbol) get(x int, y int) (v bool) {
 	return
 }
 
+// Returns a pictorial representation of the symbol, suitable for printing in a TTY
+func (m *symbol) string() string {
+	var result string
+	for _, row := range m.module {
+		for _, value := range row {
+			switch value {
+			case true:
+				result += "  "
+			case false:
+				// Unicode 'FULL BLOCK' (U+2588).
+				result += "██"
+			}
+		}
+		result += "\n"
+	}
+	return result
+}
+
 // Returns the penalty score of the symbol
 // The penalty score consists of the sum of the four individual penalty types
 func (m *symbol) penaltyScore() int {
