@@ -50,3 +50,50 @@ func equal(a []bool, b []bool) bool {
 	}
 	return true
 }
+
+func TestAppendByte(t *testing.T) {
+	tests := []struct {
+		initial  *Bitset
+		value    byte
+		numBits  int
+		expected *Bitset
+	}{
+		{
+			New(),
+			0x01,
+			1,
+			New(b1),
+		},
+		{
+			New(b1),
+			0x01,
+			1,
+			New(b1, b1),
+		},
+		{
+			New(b0),
+			0x01,
+			1,
+			New(b0, b1),
+		},
+		{
+			New(b1, b0, b1, b0, b1, b0, b1),
+			0xAA, // 0b10101010
+			2,
+			New(b1, b0, b1, b0, b1, b0, b1, b1, b0),
+		},
+		{
+			New(b1, b0, b1, b0, b1, b0, b1),
+			0xAA, // 0b10101010
+			8,
+			New(b1, b0, b1, b0, b1, b0, b1, b1, b0, b1, b0, b1, b0, b1, b0),
+		},
+	}
+	for _, test := range tests {
+		test.initial.AppendByte(test.value, test.numBits)
+		if !equal(test.initial.Bits(), test.expected.Bits()) {
+			t.Errorf("Got %v, expected %v", test.initial.Bits(),
+				test.expected.Bits())
+		}
+	}
+}
