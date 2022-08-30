@@ -148,3 +148,18 @@ func TestAppendUint32(t *testing.T) {
 		}
 	}
 }
+
+func TestAppendBools(t *testing.T) {
+	randomBools := make([]bool, 128)
+	rng := rand.New(rand.NewSource(1))
+	for i := 0; i < len(randomBools); i++ {
+		randomBools[i] = rng.Intn(2) == 1
+	}
+	for i := 0; i < len(randomBools)-1; i++ {
+		result := New(randomBools[0:i]...)
+		result.AppendBools(randomBools[i:]...)
+		if !equal(result.Bits(), randomBools) {
+			t.Errorf("got %v, want %v", result.Bits(), randomBools)
+		}
+	}
+}
