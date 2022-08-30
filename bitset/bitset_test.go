@@ -184,6 +184,17 @@ func TestAt(t *testing.T) {
 	}
 }
 
+func TestExample(t *testing.T) {
+	b := New()                       // {}
+	b.AppendBools(true, true, false) // {1, 1, 0}
+	b.AppendBools(true)              // {1, 1, 0, 1}
+	b.AppendByte(0x02, 4)            // {1, 1, 0, 1, 0, 0, 1, 0}
+	expected := []bool{b1, b1, b0, b1, b0, b0, b1, b0}
+	if !equal(b.Bits(), expected) {
+		t.Errorf("Got %v, expected %v", b.Bits(), expected)
+	}
+}
+
 func equal(a []bool, b []bool) bool {
 	if len(a) != len(b) {
 		return false
