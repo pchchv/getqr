@@ -163,3 +163,10 @@ func TestAppendBools(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkShortAppend(b *testing.B) {
+	bitset := New()
+	for i := 0; i < b.N; i++ {
+		bitset.AppendBools(b0, b1, b0, b1, b0, b1, b0)
+	}
+}
