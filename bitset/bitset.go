@@ -6,6 +6,11 @@ import (
 	"log"
 )
 
+const (
+	b0 = false
+	b1 = true
+)
+
 // Bitset stores an array of bits.
 type Bitset struct {
 	numBits int    // The number of bits stored
