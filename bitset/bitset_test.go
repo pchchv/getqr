@@ -232,6 +232,46 @@ func TestByteAt(t *testing.T) {
 	}
 }
 
+func TestSubstr(t *testing.T) {
+	data := []bool{b0, b1, b0, b1, b0, b1, b1, b0}
+	tests := []struct {
+		start    int
+		end      int
+		expected []bool
+	}{
+		{
+			0,
+			8,
+			[]bool{b0, b1, b0, b1, b0, b1, b1, b0},
+		},
+		{
+			0,
+			0,
+			[]bool{},
+		},
+		{
+			0,
+			1,
+			[]bool{b0},
+		},
+		{
+			2,
+			4,
+			[]bool{b0, b1},
+		},
+	}
+	for _, test := range tests {
+		b := New()
+		b.AppendBools(data...)
+		result := b.Substr(test.start, test.end)
+		expected := New()
+		expected.AppendBools(test.expected...)
+		if !result.Equals(expected) {
+			t.Errorf("Got %s, expected %s", result.String(), expected.String())
+		}
+	}
+}
+
 func equal(a []bool, b []bool) bool {
 	if len(a) != len(b) {
 		return false
