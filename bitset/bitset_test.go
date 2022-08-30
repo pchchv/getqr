@@ -1,6 +1,9 @@
 package bitset
 
-import "testing"
+import (
+	"math/rand"
+	"testing"
+)
 
 func TestNewBitset(t *testing.T) {
 	tests := [][]bool{
@@ -16,6 +19,22 @@ func TestNewBitset(t *testing.T) {
 		if !equal(result.Bits(), v) {
 			t.Errorf("%s", result.String())
 			t.Errorf("%v => %v, want %v", v, result.Bits(), v)
+		}
+	}
+}
+
+func TestAppend(t *testing.T) {
+	randomBools := make([]bool, 128)
+	rng := rand.New(rand.NewSource(1))
+	for i := 0; i < len(randomBools); i++ {
+		randomBools[i] = rng.Intn(2) == 1
+	}
+	for i := 0; i < len(randomBools)-1; i++ {
+		a := New(randomBools[0:i]...)
+		b := New(randomBools[i:]...)
+		a.Append(b)
+		if !equal(a.Bits(), randomBools) {
+			t.Errorf("got %v, want %v", a.Bits(), randomBools)
 		}
 	}
 }
