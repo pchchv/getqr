@@ -170,3 +170,17 @@ func BenchmarkShortAppend(b *testing.B) {
 		bitset.AppendBools(b0, b1, b0, b1, b0, b1, b0)
 	}
 }
+
+func TestLen(t *testing.T) {
+	randomBools := make([]bool, 128)
+	rng := rand.New(rand.NewSource(1))
+	for i := 0; i < len(randomBools); i++ {
+		randomBools[i] = rng.Intn(2) == 1
+	}
+	for i := 0; i < len(randomBools)-1; i++ {
+		result := New(randomBools[0:i]...)
+		if result.Len() != i {
+			t.Errorf("Len = %d, want %d", result.Len(), i)
+		}
+	}
+}
