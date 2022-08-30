@@ -195,6 +195,43 @@ func TestExample(t *testing.T) {
 	}
 }
 
+func TestByteAt(t *testing.T) {
+	data := []bool{b0, b1, b0, b1, b0, b1, b1, b0, b1}
+	tests := []struct {
+		index    int
+		expected byte
+	}{
+		{
+			0,
+			0x56,
+		},
+		{
+			1,
+			0xad,
+		},
+		{
+			2,
+			0x2d,
+		},
+		{
+			5,
+			0x0d,
+		},
+		{
+			8,
+			0x01,
+		},
+	}
+	for _, test := range tests {
+		b := New()
+		b.AppendBools(data...)
+		result := b.ByteAt(test.index)
+		if result != test.expected {
+			t.Errorf("Got %#x, expected %#x", result, test.expected)
+		}
+	}
+}
+
 func equal(a []bool, b []bool) bool {
 	if len(a) != len(b) {
 		return false
