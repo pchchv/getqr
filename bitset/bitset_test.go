@@ -39,18 +39,6 @@ func TestAppend(t *testing.T) {
 	}
 }
 
-func equal(a []bool, b []bool) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := 0; i < len(a); i++ {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
 func TestAppendByte(t *testing.T) {
 	tests := []struct {
 		initial  *Bitset
@@ -183,4 +171,27 @@ func TestLen(t *testing.T) {
 			t.Errorf("Len = %d, want %d", result.Len(), i)
 		}
 	}
+}
+
+func TestAt(t *testing.T) {
+	test := []bool{b0, b1, b0, b1, b0, b1, b1, b0, b1}
+	bitset := New(test...)
+	for i, v := range test {
+		result := bitset.At(i)
+		if result != test[i] {
+			t.Errorf("bitset[%d] => %t, want %t", i, result, v)
+		}
+	}
+}
+
+func equal(a []bool, b []bool) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := 0; i < len(a); i++ {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
 }
