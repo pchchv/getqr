@@ -97,3 +97,54 @@ func TestAppendByte(t *testing.T) {
 		}
 	}
 }
+
+func TestAppendUint32(t *testing.T) {
+	tests := []struct {
+		initial  *Bitset
+		value    uint32
+		numBits  int
+		expected *Bitset
+	}{
+		{
+			New(),
+			0xAAAAAAAF,
+			4,
+			New(b1, b1, b1, b1),
+		},
+		{
+			New(),
+			0xFFFFFFFF,
+			32,
+			New(b1, b1, b1, b1, b1, b1, b1, b1, b1, b1, b1, b1, b1, b1, b1, b1, b1,
+				b1, b1, b1, b1, b1, b1, b1, b1, b1, b1, b1, b1, b1, b1, b1),
+		},
+		{
+			New(),
+			0x0,
+			32,
+			New(b0, b0, b0, b0, b0, b0, b0, b0, b0, b0, b0, b0, b0, b0, b0, b0, b0,
+				b0, b0, b0, b0, b0, b0, b0, b0, b0, b0, b0, b0, b0, b0, b0),
+		},
+		{
+			New(),
+			0xAAAAAAAA,
+			32,
+			New(b1, b0, b1, b0, b1, b0, b1, b0, b1, b0, b1, b0, b1, b0, b1, b0, b1,
+				b0, b1, b0, b1, b0, b1, b0, b1, b0, b1, b0, b1, b0, b1, b0),
+		},
+		{
+			New(),
+			0xAAAAAAAA,
+			31,
+			New(b0, b1, b0, b1, b0, b1, b0, b1, b0, b1, b0, b1, b0, b1, b0, b1,
+				b0, b1, b0, b1, b0, b1, b0, b1, b0, b1, b0, b1, b0, b1, b0),
+		},
+	}
+	for _, test := range tests {
+		test.initial.AppendUint32(test.value, test.numBits)
+		if !equal(test.initial.Bits(), test.expected.Bits()) {
+			t.Errorf("Got %v, expected %v", test.initial.Bits(),
+				test.expected.Bits())
+		}
+	}
+}
